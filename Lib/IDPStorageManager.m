@@ -98,22 +98,25 @@ static IDPStorageManager *s_storageManager = nil;
         NSString *hash = [self encryptToMD5WithData:data];
             // Uploadチケット発行
 
-        PFConfig *config = [PFConfig getConfig];
+        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
             // config の取得
-
-        NSString *prefix = config[@"UploadTicketPrefix"];
-        NSLog(@"prefix=%@",prefix );
-
-        NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
-
-        [[PFObject objectWithClassName:@"UploadTicket" dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *PF_NULLABLE_S error)
-        {
             if( error == nil ){
-                [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
+                NSString *prefix = config[@"UploadTicketPrefix"];
+                NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
+                
+                [[PFObject objectWithClassName:@"UploadTicket" dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *PF_NULLABLE_S error)
+                 {
+                     if( error == nil ){
+                         [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
+                     }else{
+                         [taskCompletion setError:error];
+                         
+                     }
+                 }];
             }else{
                 [taskCompletion setError:error];
-
             }
+
         }];
 
         return taskCompletion.task;
@@ -125,43 +128,47 @@ static IDPStorageManager *s_storageManager = nil;
 
         NSDictionary *dict = task.result;
 
-        PFConfig *config = [PFConfig getConfig];
-            // config の取得
-        NSString *uploadURL = config[@"UploadURL"];
 
-        AFHTTPRequestOperation *operation = [self.operationManager POST:uploadURL parameters:@{@"name":dict[@"name"]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-
-            NSString *filename = dict[@"filename"];
-            filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
-            NSString *MINE = dict[@"MINE"];
-            NSData *data = dict[@"data"];
-
-            // イメージデータを追加
-            [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
-        }
-            success:^(AFHTTPRequestOperation *operation, id responseObject) {
-
-                NSLog(@"responseObject=%@",responseObject);
-
-                [taskCompletion setResult:responseObject];
-
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-              [taskCompletion setError:error];
+        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+            if( error == nil ){
+                NSString *uploadURL = config[@"UploadURL"];
+                
+                AFHTTPRequestOperation *operation = [self.operationManager POST:uploadURL parameters:@{@"name":dict[@"name"]}
+                    constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                        NSString *filename = dict[@"filename"];
+                        filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
+                        NSString *MINE = dict[@"MINE"];
+                        NSData *data = dict[@"data"];
+                        
+                        // イメージデータを追加
+                        [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
+                    }
+                    success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        
+                        NSLog(@"responseObject=%@",responseObject);
+                        
+                        [taskCompletion setResult:responseObject];
+                        
+                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        [taskCompletion setError:error];
+                    }
+                                                     ];
+                
+                if( progress != nil ){
+                    [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
+                        progress(bytesWritten,totalBytesWritten,totalBytesExpectedToWrite);
+                    }];
+                }
+            }else{
+                [taskCompletion setError:error];
             }
-        ];
-        
-        if( progress != nil ){
-            [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
-                progress(bytesWritten,totalBytesWritten,totalBytesExpectedToWrite);
-            }];
-        }
+        }];
         return taskCompletion.task;
     }];
 
 
     taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
         id result = task.result;
-//        NSLog(@"task.result=%@",task.result);
 
         NSDictionary *dict = [result isKindOfClass:[NSDictionary class]] ? result : nil;
         NSString *objectID = dict[@"objectID"];
@@ -199,10 +206,6 @@ static IDPStorageManager *s_storageManager = nil;
     NSString *path = [photoImage objectForKey:@"path"];
     if( path.length > 0 ){
         
-        PFConfig *config = [PFConfig getConfig];
-        // config の取得
-        NSString *loadURL = config[@"LoadURL"];
-
         __block BFTask *taskStore = [BFTask taskWithResult:photoImage];
      
         if( [photoImage isDataAvailable] != YES ){
@@ -223,21 +226,29 @@ static IDPStorageManager *s_storageManager = nil;
         
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
-            
+
             PFObject *photoImage = task.result;
             NSString *path = photoImage[@"path"];
-
             
-            AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [taskCompletion setResult:responseObject];
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [taskCompletion setError:error];
+            [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+                if( error == nil ){
+                    NSString *loadURL = config[@"LoadURL"];
+               
+                    AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        [taskCompletion setResult:responseObject];
+                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        [taskCompletion setError:error];
+                    }];
+                    
+                    if( startBlock != nil ){
+                        startBlock(operation);
+                    }
+                
+                }else{
+                    [taskCompletion setError:error];
+                }
             }];
-            
-            if( startBlock != nil ){
-                startBlock(operation);
-            }
-            
+                                
             return taskCompletion.task;
         }];
         
