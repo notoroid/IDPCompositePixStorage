@@ -1,6 +1,6 @@
 //
 //  AppDelegate.m
-//  IDPCompositPixStorage
+//  IDPCompositePixStorage
 //
 //  Created by 能登 要 on 2015/07/07.
 //  Copyright (c) 2015年 Irimasu Densan Planning. All rights reserved.
@@ -18,8 +18,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    NSString *applicationID = @"<YOUR_PARSE_APPLICATION_ID>";
-    NSString *clientKey = @"<YOUR_PARSE_CLIENT_KEY>";
+    NSString *applicationID = @"zWENGww8SgWTi4TRQ26Q7KHLiLdYN8f82Dze5fQj";
+    NSString *clientKey = @"GaSSlEf5sk0vTbWPoDczypSk0bx0b4DYeOtXlnWW";
     
     NSAssert([applicationID isEqualToString:@"<YOUR_PARSE_APPLICATION_ID>"] != YES,@"input your Parse application ID.");
     NSAssert([clientKey isEqualToString:@"<YOUR_PARSE_CLIENT_KEY>"]  != YES,@"input your Parse application master key.");
