@@ -4,7 +4,7 @@ IDPcompositePixStorage is a script and iOS middleware set for the storage of the
 Usage
 Cocoapods Supported. Please describe the following in your Podfile.
 
-pod 'SimpleNumpad', :git => 'https://github.com/notoroid/IDPCompositePixStorage.git'
+pod 'IDPCompositePixStorage', :git => 'https://github.com/notoroid/IDPCompositePixStorage.git'
 
 cocoapod install
 or
