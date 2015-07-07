@@ -15,8 +15,8 @@
 		879202581B4C37230002F341 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 879202571B4C37230002F341 /* Images.xcassets */; };
 		8792025B1B4C37230002F341 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 879202591B4C37230002F341 /* LaunchScreen.xib */; };
 		879202671B4C37230002F341 /* IDPCompositePixStorageTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202661B4C37230002F341 /* IDPCompositePixStorageTests.m */; };
-		879202731B4C37780002F341 /* IDPStorageManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202721B4C37780002F341 /* IDPStorageManager.m */; };
 		879202761B4C378C0002F341 /* ImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202751B4C378C0002F341 /* ImageViewController.m */; };
+		879202B11B4C47860002F341 /* IDPStorageManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202B01B4C47860002F341 /* IDPStorageManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,11 +46,11 @@
 		879202601B4C37230002F341 /* IDPCompositePixStorageTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IDPCompositePixStorageTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		879202651B4C37230002F341 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		879202661B4C37230002F341 /* IDPCompositePixStorageTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IDPCompositePixStorageTests.m; sourceTree = "<group>"; };
-		879202711B4C37780002F341 /* IDPStorageManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageManager.h; sourceTree = "<group>"; };
-		879202721B4C37780002F341 /* IDPStorageManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageManager.m; sourceTree = "<group>"; };
 		879202741B4C378C0002F341 /* ImageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageViewController.h; sourceTree = "<group>"; };
 		879202751B4C378C0002F341 /* ImageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageViewController.m; sourceTree = "<group>"; };
-		879202771B4C3A1C0002F341 /* IDPCompositePixStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDPCompositePixStorage.h; sourceTree = "<group>"; };
+		879202AE1B4C47860002F341 /* IDPCompositePixStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPCompositePixStorage.h; sourceTree = "<group>"; };
+		879202AF1B4C47860002F341 /* IDPStorageManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageManager.h; sourceTree = "<group>"; };
+		879202B01B4C47860002F341 /* IDPStorageManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,7 +83,7 @@
 		8792023E1B4C37230002F341 = {
 			isa = PBXGroup;
 			children = (
-				879202701B4C37780002F341 /* Lib */,
+				879202AD1B4C47860002F341 /* Lib */,
 				879202491B4C37230002F341 /* IDPCompositePixStorage */,
 				879202631B4C37230002F341 /* IDPCompositePixStorageTests */,
 				879202481B4C37230002F341 /* Products */,
@@ -144,15 +144,14 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		879202701B4C37780002F341 /* Lib */ = {
+		879202AD1B4C47860002F341 /* Lib */ = {
 			isa = PBXGroup;
 			children = (
-				879202771B4C3A1C0002F341 /* IDPCompositePixStorage.h */,
-				879202711B4C37780002F341 /* IDPStorageManager.h */,
-				879202721B4C37780002F341 /* IDPStorageManager.m */,
+				879202AE1B4C47860002F341 /* IDPCompositePixStorage.h */,
+				879202AF1B4C47860002F341 /* IDPStorageManager.h */,
+				879202B01B4C47860002F341 /* IDPStorageManager.m */,
 			);
-			name = Lib;
-			path = IDPCompositePixStorage/Lib;
+			path = Lib;
 			sourceTree = "<group>";
 		};
 		FBF3C11D2DE3219E420CC0A7 /* Pods */ = {
@@ -301,9 +300,9 @@
 			files = (
 				879202761B4C378C0002F341 /* ImageViewController.m in Sources */,
 				879202531B4C37230002F341 /* ViewController.m in Sources */,
+				879202B11B4C47860002F341 /* IDPStorageManager.m in Sources */,
 				879202501B4C37230002F341 /* AppDelegate.m in Sources */,
 				8792024D1B4C37230002F341 /* main.m in Sources */,
-				879202731B4C37780002F341 /* IDPStorageManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
