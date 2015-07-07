@@ -1,0 +1,110 @@
+<?php
+	require 'vendor/autoload.php';	
+	
+	date_default_timezone_set('Asia/Tokyo');
+
+	use Parse\ParseClient;
+	use Parse\ParseObject;
+	use Parse\ParseQuery;
+	
+	define('PARSE_APPLICATION_ID', '<YOUR_PARSE_APPLICATION_ID>' );
+	define('PARSE_REST_API_KEY', '<YOUR_PARSE_REST_API_KEY>' );
+	define('PARSE_MASTER_KEY', '<YOUR_PARSE_MASTER_KEY>' );
+	
+	if( PARSE_APPLICATION_ID == '<YOUR_PARSE_APPLICATION_ID>' || PARSE_REST_API_KEY == '<YOUR_PARSE_REST_API_KEY>' || PARSE_MASTER_KEY == '<YOUR_PARSE_MASTER_KEY>'){
+		
+        $response = new StdClass;
+		if( PARSE_APPLICATION_ID == '<YOUR_PARSE_APPLICATION_ID>' ){
+	        $response->errorDescription = "application ID empty.";
+		}else if(PARSE_REST_API_KEY == '<YOUR_PARSE_REST_API_KEY>'){
+	        $response->errorDescription = "REST API key empty.";
+		}else if(PARSE_MASTER_KEY == '<YOUR_PARSE_MASTER_KEY>'){
+	        $response->errorDescription = "master key empty.";
+		}
+        header('Content-type: application/json');
+        echo stripslashes(json_encode($response));
+	}else{
+		ParseClient::initialize(PARSE_APPLICATION_ID, PARSE_REST_API_KEY, PARSE_MASTER_KEY);
+	
+	
+		// チケット名を取得
+		$s_ticketName =  htmlspecialchars($_POST['name'], ENT_QUOTES);
+	
+		$query = new ParseQuery('UploadTicket');
+		$query->equalTo('name', $s_ticketName );
+		$results = $query->find();
+	
+		if( count($results) ){
+			$ticketObject = $results[0];
+	
+			if (!isset($_FILES["file"]["error"]) ||  !is_int($_FILES["file"]["error"])) {
+		        throw new RuntimeException('parameter failure.');
+		    }
+			
+			switch ($_FILES["file"]["error"]) {
+		        case UPLOAD_ERR_OK:
+		            break;
+		        case UPLOAD_ERR_NO_FILE:
+		            throw new RuntimeException('no file.');
+		        case UPLOAD_ERR_INI_SIZE:
+		        case UPLOAD_ERR_FORM_SIZE:
+		            throw new RuntimeException('file size too large.');
+		        default:
+		            throw new RuntimeException('unresolved error');
+		    }
+			
+		    // Allowed extentions.
+		    $allowedExts = array("gif","jpeg","jpg","png");
+		    $allowedMINEs = array("image/gif","image/jpeg","image/pjpeg","image/x-png","image/png");
+		    
+		    // Get filename.
+		    $temp = explode(".", $_FILES["file"]["name"]);
+		
+		    // Get extension.
+		    $extension = end($temp);
+		
+		    // An image check is being done in the editor but it is best to
+		    // check that again on the server side.
+		    // Do not use $_FILES["file"]["type"] as it can be easily forged.
+		    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+		    $mime = finfo_file($finfo, $_FILES["file"]["tmp_name"]);
+		
+		    if ((in_array($mime, $allowedMINEs) && in_array($extension, $allowedExts))) {
+		        // Generate new random name.
+		        $name = sha1(microtime()) . "." . $extension;
+		
+		        // Save file in the uploads folder.
+		        move_uploaded_file($_FILES["file"]["tmp_name"], getcwd() . "/images/" . $name);
+		
+	    	    $photoImage = new ParseObject("PhotoImage");
+			    $photoImage->set('path', $name);
+		    
+				try {
+				  $photoImage->save();
+				  
+			        // Generate response.
+			        $response = new StdClass;
+			        $response->objectID = $photoImage->getObjectId();
+			        
+		            header('Content-type: application/json');
+			        echo stripslashes(json_encode($response));
+				} catch (ParseException $ex) {  
+			        $response = new StdClass;
+			        $response->errorDescription = "save failue";
+			        header('Content-type: application/json');
+			        echo stripslashes(json_encode($response));
+				}	    
+		    }
+		    
+		    // Ticketを削除
+		    $ticketObject->destroy();
+		    
+		}else{
+	        $response = new StdClass;
+	        $response->errorDescription = "upload failue";
+	        header('Content-type: application/json');
+	        echo stripslashes(json_encode($response));
+		}		
+	}
+
+?>
