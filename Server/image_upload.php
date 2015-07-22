@@ -25,6 +25,27 @@
         echo stripslashes(json_encode($response));
 	}else{
 		ParseClient::initialize(PARSE_APPLICATION_ID, PARSE_REST_API_KEY, PARSE_MASTER_KEY);
+
+		$subFolderPath = 'images';
+	
+		// SubFolder検出
+		$queryStoreSubFolder = new ParseQuery('StoreSubFolder');
+		$resultsStoreSubFolder = $queryStoreSubFolder->find();
+		
+		// ランダムで取得
+		if( count($resultsStoreSubFolder) ){
+			$subfolderObject = $resultsStoreSubFolder[array_rand($resultsStoreSubFolder,1)];
+			
+			$subFolderPath = $subfolderObject->get('path');
+
+			$dir = getcwd() . '/' . $subFolderPath;
+			 if (!is_dir($dir)) {
+                if (!mkdir($dir)) {
+                    throw new RuntimeException('Failed to create directory: ' . $dir);
+                }
+                chmod($dir, 0777);
+            }
+		}
 	
 	
 		// チケット名を取得
@@ -74,10 +95,10 @@
 		        $name = sha1(microtime()) . "." . $extension;
 		
 		        // Save file in the uploads folder.
-		        move_uploaded_file($_FILES["file"]["tmp_name"], getcwd() . "/images/" . $name);
+		        move_uploaded_file($_FILES["file"]["tmp_name"], getcwd() . '/' . $subFolderPath . '/' . $name);
 		
 	    	    $photoImage = new ParseObject("PhotoImage");
-			    $photoImage->set('path', $name);
+			    $photoImage->set('path', $subFolderPath . '/' . $name);
 		    
 				try {
 				  $photoImage->save();
@@ -104,7 +125,8 @@
 	        $response->errorDescription = "upload failue";
 	        header('Content-type: application/json');
 	        echo stripslashes(json_encode($response));
-		}		
+		}
+		
 	}
 
 ?>
