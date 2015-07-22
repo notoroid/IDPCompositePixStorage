@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "IDPCompositePixStorage"
-  s.version      = "0.0.2"
+  s.version      = "0.0.3"
   s.summary      = "IDPcompositePixStorage is a script and iOS middleware set for the storage of the image by combining the mBaaS and Web hosting service"
 
   s.description  = <<-DESC
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 
   s.platform     = :ios, "8.0"
 
-  s.source       = { :git => "https://github.com/notoroid/IDPcompositePixStorage.git", :tag => "v0.0.2" }
+  s.source       = { :git => "https://github.com/notoroid/IDPcompositePixStorage.git", :tag => "v0.0.3" }
 
   s.source_files  = "Lib/**/*.{h,m}"
   s.dependency 'AFNetworking'
