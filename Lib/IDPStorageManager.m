@@ -200,6 +200,11 @@ static IDPStorageManager *s_storageManager = nil;
     }];
 }
 
+- (void) loadImageWithPhotoImage:(PFObject *)photoImage completion:(void (^)(UIImage *image,NSError *error))completion
+{
+    [self loadImageWithPhotoImage:photoImage startBlock:nil completion:completion];
+}
+
 - (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(AFHTTPRequestOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 
 {
@@ -270,6 +275,12 @@ static IDPStorageManager *s_storageManager = nil;
         });
     }
 }
+
+- (void) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion
+{
+    [self loadImageWithObjectID:objectID startBlock:nil completion:completion];
+}
+
 
 - (void) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(AFHTTPRequestOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
 {
