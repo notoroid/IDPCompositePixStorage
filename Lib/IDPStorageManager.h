@@ -13,7 +13,7 @@
 
 @interface IDPStorageManager : NSObject
 
-+ (IDPStorageManager *) defaultManager;
++ (instancetype) defaultManager;
 
 - (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress;
 

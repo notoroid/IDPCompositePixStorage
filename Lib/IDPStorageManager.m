@@ -11,6 +11,7 @@
 #import <Bolts/Bolts.h>
 #import <Parse/Parse.h>
 #import <AFNetworking/AFNetworking.h>
+#import "IDPStorageCacheManager.h"
 
 static IDPStorageManager *s_storageManager = nil;
 
@@ -89,7 +90,6 @@ static IDPStorageManager *s_storageManager = nil;
         }
         return data;
     }];
-    
     
     taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
         BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
@@ -206,13 +206,12 @@ static IDPStorageManager *s_storageManager = nil;
 }
 
 - (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(AFHTTPRequestOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
-
 {
     NSString *path = [photoImage objectForKey:@"path"];
     if( path.length > 0 ){
         
         __block BFTask *taskStore = [BFTask taskWithResult:photoImage];
-     
+        
         if( [photoImage isDataAvailable] != YES ){
             taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
                 BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
@@ -228,39 +227,50 @@ static IDPStorageManager *s_storageManager = nil;
                 return taskCompletion.task;
             }];
         }
-        
+
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-            PFObject *photoImage = task.result;
-            NSString *path = photoImage[@"path"];
-            
-            [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
-                if( error == nil ){
-                    NSString *loadURL = config[@"LoadURL"];
-               
-                    AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                        [taskCompletion setResult:responseObject];
-                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                        [taskCompletion setError:error];
-                    }];
-                    
-                    if( startBlock != nil ){
-                        startBlock(operation);
-                    }
-                
+            [[IDPStorageCacheManager defaultManager] imageLoadWithPath:path completion:^(UIImage *image, NSError *error) {
+                if( image != nil ){
+                    [taskCompletion setResult:image];
                 }else{
-                    [taskCompletion setError:error];
+                    PFObject *photoImage = task.result;
+                    NSString *path = photoImage[@"path"];
+                    
+                    [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+                        if( error == nil ){
+                            NSString *loadURL = config[@"LoadURL"];
+                            
+                            AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                [taskCompletion setResult:responseObject];
+                            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                [taskCompletion setError:error];
+                            }];
+                            
+                            if( startBlock != nil ){
+                                startBlock(operation);
+                            }
+                            
+                            
+                        }else{
+                            [taskCompletion setError:error];
+                        }
+                    }];
                 }
             }];
-                                
+            
             return taskCompletion.task;
         }];
         
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             id result = task.result;
+            
             UIImage *image = [result isKindOfClass:[UIImage class]] ? result : nil;
+            [[IDPStorageCacheManager defaultManager] storeImage:image withPath:path completion:^(NSError *error) {
 
+            }];
+            
             if( completion != nil ){
                 dispatch_async(dispatch_get_main_queue(), ^{
                     completion(image,task.error);

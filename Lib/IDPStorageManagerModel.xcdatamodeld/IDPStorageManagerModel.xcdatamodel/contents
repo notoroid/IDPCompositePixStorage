@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7701" systemVersion="14E46" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="IDPStorageCacheImage" representedClassName="IDPStorageCacheImage" syncable="YES">
+        <attribute name="cacheName" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="storageCacheImageData" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="IDPStorageCacheImageData" inverseName="storageCacheImage" inverseEntity="IDPStorageCacheImageData" syncable="YES"/>
+    </entity>
+    <entity name="IDPStorageCacheImageData" representedClassName="IDPStorageCacheImageData" syncable="YES">
+        <attribute name="data" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES" syncable="YES"/>
+        <relationship name="storageCacheImage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="IDPStorageCacheImage" inverseName="storageCacheImageData" inverseEntity="IDPStorageCacheImage" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="IDPStorageCacheImage" positionX="-63" positionY="-18" width="128" height="75"/>
+        <element name="IDPStorageCacheImageData" positionX="-54" positionY="-9" width="128" height="75"/>
+    </elements>
+</model>

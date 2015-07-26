@@ -17,6 +17,10 @@
 		879202671B4C37230002F341 /* IDPCompositePixStorageTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202661B4C37230002F341 /* IDPCompositePixStorageTests.m */; };
 		879202761B4C378C0002F341 /* ImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202751B4C378C0002F341 /* ImageViewController.m */; };
 		879202B11B4C47860002F341 /* IDPStorageManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202B01B4C47860002F341 /* IDPStorageManager.m */; };
+		879FA04C1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 879FA04A1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodeld */; };
+		879FA04F1B64D511000C959B /* IDPStorageCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 879FA04E1B64D511000C959B /* IDPStorageCacheManager.m */; };
+		879FA05B1B64E097000C959B /* IDPStorageCacheImageData.m in Sources */ = {isa = PBXBuildFile; fileRef = 879FA05A1B64E097000C959B /* IDPStorageCacheImageData.m */; };
+		879FA0611B64E25D000C959B /* IDPStorageCacheImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 879FA0601B64E25D000C959B /* IDPStorageCacheImage.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +55,13 @@
 		879202AE1B4C47860002F341 /* IDPCompositePixStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPCompositePixStorage.h; sourceTree = "<group>"; };
 		879202AF1B4C47860002F341 /* IDPStorageManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageManager.h; sourceTree = "<group>"; };
 		879202B01B4C47860002F341 /* IDPStorageManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageManager.m; sourceTree = "<group>"; };
+		879FA04B1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = IDPStorageManagerModel.xcdatamodel; sourceTree = "<group>"; };
+		879FA04D1B64D511000C959B /* IDPStorageCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageCacheManager.h; sourceTree = "<group>"; };
+		879FA04E1B64D511000C959B /* IDPStorageCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageCacheManager.m; sourceTree = "<group>"; };
+		879FA0591B64E097000C959B /* IDPStorageCacheImageData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageCacheImageData.h; sourceTree = "<group>"; };
+		879FA05A1B64E097000C959B /* IDPStorageCacheImageData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageCacheImageData.m; sourceTree = "<group>"; };
+		879FA05F1B64E25D000C959B /* IDPStorageCacheImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDPStorageCacheImage.h; sourceTree = "<group>"; };
+		879FA0601B64E25D000C959B /* IDPStorageCacheImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDPStorageCacheImage.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +161,13 @@
 				879202AE1B4C47860002F341 /* IDPCompositePixStorage.h */,
 				879202AF1B4C47860002F341 /* IDPStorageManager.h */,
 				879202B01B4C47860002F341 /* IDPStorageManager.m */,
+				879FA04D1B64D511000C959B /* IDPStorageCacheManager.h */,
+				879FA04E1B64D511000C959B /* IDPStorageCacheManager.m */,
+				879FA04A1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodeld */,
+				879FA0591B64E097000C959B /* IDPStorageCacheImageData.h */,
+				879FA05A1B64E097000C959B /* IDPStorageCacheImageData.m */,
+				879FA05F1B64E25D000C959B /* IDPStorageCacheImage.h */,
+				879FA0601B64E25D000C959B /* IDPStorageCacheImage.m */,
 			);
 			path = Lib;
 			sourceTree = "<group>";
@@ -300,9 +318,13 @@
 			files = (
 				879202761B4C378C0002F341 /* ImageViewController.m in Sources */,
 				879202531B4C37230002F341 /* ViewController.m in Sources */,
+				879FA0611B64E25D000C959B /* IDPStorageCacheImage.m in Sources */,
+				879FA04F1B64D511000C959B /* IDPStorageCacheManager.m in Sources */,
 				879202B11B4C47860002F341 /* IDPStorageManager.m in Sources */,
 				879202501B4C37230002F341 /* AppDelegate.m in Sources */,
 				8792024D1B4C37230002F341 /* main.m in Sources */,
+				879FA04C1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodeld in Sources */,
+				879FA05B1B64E097000C959B /* IDPStorageCacheImageData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -511,6 +533,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		879FA04A1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				879FA04B1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodel */,
+			);
+			currentVersion = 879FA04B1B64CFEE000C959B /* IDPStorageManagerModel.xcdatamodel */;
+			path = IDPStorageManagerModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 8792023F1B4C37230002F341 /* Project object */;
 }
