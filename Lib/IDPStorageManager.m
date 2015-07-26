@@ -207,34 +207,18 @@ static IDPStorageManager *s_storageManager = nil;
 
 - (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 {
-    NSString *path = [photoImage objectForKey:@"path"];
-    if( path.length > 0 ){
-        
+//    NSString *path = [photoImage objectForKey:@"path"];
+    NSString *objectId = photoImage.objectId;
         __block BFTask *taskStore = [BFTask taskWithResult:photoImage];
         
-        if( [photoImage isDataAvailable] != YES ){
-            taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
-                BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
-                
-                [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
-                    if( error == nil ){
-                        [taskCompletion setResult:photoImage];
-                    }else{
-                        [taskCompletion setError:error];
-                    }
-                }];
-                
-                return taskCompletion.task;
-            }];
-        }
-
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-            NSOperation *operation = [[IDPStorageCacheManager defaultManager] imageLoadWithPath:path completion:^(UIImage *image, NSError *error) {
+        NSOperation *operation = [[IDPStorageCacheManager defaultManager] imageLoadWithPath:objectId completion:^(UIImage *image, NSError *error) {
                 if( image != nil ){
                     [taskCompletion setResult:image];
                 }else{
+                dispatch_block_t block = ^{
                     PFObject *photoImage = task.result;
                     NSString *path = photoImage[@"path"];
                     
@@ -257,6 +241,20 @@ static IDPStorageManager *s_storageManager = nil;
                             [taskCompletion setError:error];
                         }
                     }];
+
+                };
+                
+                if( [photoImage isDataAvailable] != YES ){
+                    [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+                        if( error == nil ){
+                            block();
+                        }else{
+                            [taskCompletion setError:error];
+                        }
+                    }];
+                }else{
+                    block();
+                }
                 }
             }];
             if( startBlock != nil ){
@@ -270,7 +268,7 @@ static IDPStorageManager *s_storageManager = nil;
             id result = task.result;
             
             UIImage *image = [result isKindOfClass:[UIImage class]] ? result : nil;
-            [[IDPStorageCacheManager defaultManager] storeImage:image withPath:path completion:^(NSError *error) {
+        [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectId completion:^(NSError *error) {
 
             }];
             
@@ -282,11 +280,7 @@ static IDPStorageManager *s_storageManager = nil;
             
             return nil;
         }];
-    }else{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion(nil,nil);
-        });
-    }
+    
 }
 
 - (void) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion

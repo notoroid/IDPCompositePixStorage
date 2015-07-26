@@ -21,7 +21,7 @@
 
     [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     
-    [[IDPStorageManager defaultManager] loadImageWithPhotoImage:self.photoImage startBlock:^(AFHTTPRequestOperation *operation) {
+    [[IDPStorageManager defaultManager] loadImageWithPhotoImage:self.photoImage startBlock:^(NSOperation *operation) {
         
     } completion:^(UIImage *image, NSError *error) {
         self.imageView.image = image;
