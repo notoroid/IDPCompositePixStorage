@@ -100,8 +100,6 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
 
 - (void) storeImage:(UIImage *)image withPath:(NSString *)path completion:(void (^)(NSError *error))completion
 {
-    NSLog(@"storeData: call.");
-    
     NSManagedObjectContext *temporaryContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
     temporaryContext.parentContext = self.managedObjectContext;
     
