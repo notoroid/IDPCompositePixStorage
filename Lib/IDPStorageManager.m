@@ -207,6 +207,14 @@ static IDPStorageManager *s_storageManager = nil;
             PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
             [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
                 if( error == nil ){
+                    // ストレージキャッシュに保存
+                    [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
+                        
+                    }];
+                    
+                    // キャッシュに保存
+                    [self.cahe setObject:image forKey:objectID];
+                    
                     [taskCompletion setResult:object];
                 }else{
                     [taskCompletion setError:error];
