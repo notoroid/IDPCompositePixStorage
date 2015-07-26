@@ -62,9 +62,9 @@
     NSString *path = [photoImage objectForKey:@"path"];
     cell.textLabel.text = path;
 
-    [[IDPStorageManager defaultManager] loadImageWithPhotoImage:photoImage completion:^(UIImage *image, NSError *error) {
-        
-    }];
+//    [[IDPStorageManager defaultManager] loadImageWithPhotoImage:photoImage completion:^(UIImage *image, NSError *error) {
+//        
+//    }];
     
     
     
