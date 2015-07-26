@@ -20,9 +20,12 @@ static IDPStorageManager *s_storageManager = nil;
 {
     AFHTTPRequestOperationManager *_operationManager;
     AFHTTPRequestOperationManager *_imageOperationManager;
+    NSCache *_cahe;
+    id _observerApplicationDidReceiveMemoryWarning;
 }
 @property(readonly,nonatomic) AFHTTPRequestOperationManager *operationManager;
 @property(readonly,nonatomic) AFHTTPRequestOperationManager *imageOperationManager;
+@property(readonly,nonatomic) NSCache *cahe;
 @end
 
 @implementation IDPStorageManager
@@ -41,6 +44,31 @@ static IDPStorageManager *s_storageManager = nil;
         _imageOperationManager.responseSerializer = [AFImageResponseSerializer serializer];
     }
     return _imageOperationManager;
+}
+
+- (NSCache *)cahe
+{
+    if( _cahe == nil ){
+        _cahe = [[NSCache alloc] init];
+        _cahe.countLimit = 10;
+    }
+    return _cahe;
+}
+
+- (instancetype) init
+{
+    self = [super init];
+    if( self != nil ){
+        _observerApplicationDidReceiveMemoryWarning = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+            [self.cahe removeAllObjects];
+        }];
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:_observerApplicationDidReceiveMemoryWarning];
 }
 
 + (IDPStorageManager *) defaultManager
@@ -200,61 +228,63 @@ static IDPStorageManager *s_storageManager = nil;
     }];
 }
 
-- (void) loadImageWithPhotoImage:(PFObject *)photoImage completion:(void (^)(UIImage *image,NSError *error))completion
+- (UIImage *) loadImageWithPhotoImage:(PFObject *)photoImage completion:(void (^)(UIImage *image,NSError *error))completion
 {
-    [self loadImageWithPhotoImage:photoImage startBlock:nil completion:completion];
+    return [self loadImageWithPhotoImage:photoImage startBlock:nil completion:completion];
 }
 
-- (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
+- (UIImage *) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 {
-//    NSString *path = [photoImage objectForKey:@"path"];
     NSString *objectId = photoImage.objectId;
+    
+    UIImage *cachedImage = [self.cahe objectForKey:objectId];
+    if( cachedImage == nil ){
         __block BFTask *taskStore = [BFTask taskWithResult:photoImage];
-        
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-        NSOperation *operation = [[IDPStorageCacheManager defaultManager] imageLoadWithPath:objectId completion:^(UIImage *image, NSError *error) {
+            NSOperation *operation = [[IDPStorageCacheManager defaultManager] imageLoadWithPath:objectId completion:^(UIImage *image, NSError *error) {
                 if( image != nil ){
                     [taskCompletion setResult:image];
+                    [self.cahe setObject:image forKey:objectId];
                 }else{
-                dispatch_block_t block = ^{
-                    PFObject *photoImage = task.result;
-                    NSString *path = photoImage[@"path"];
-                    
-                    [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
-                        if( error == nil ){
-                            NSString *loadURL = config[@"LoadURL"];
-                            
-                            AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                                [taskCompletion setResult:responseObject];
-                            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    dispatch_block_t block = ^{
+                        PFObject *photoImage = task.result;
+                        NSString *path = photoImage[@"path"];
+                        
+                        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+                            if( error == nil ){
+                                NSString *loadURL = config[@"LoadURL"];
+                                
+                                AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                    [taskCompletion setResult:responseObject];
+                                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                    [taskCompletion setError:error];
+                                }];
+                                
+                                if( startBlock != nil ){
+                                    startBlock(operation);
+                                }
+                                
+                                
+                            }else{
                                 [taskCompletion setError:error];
-                            }];
-                            
-                            if( startBlock != nil ){
-                                startBlock(operation);
                             }
-                            
-                            
-                        }else{
-                            [taskCompletion setError:error];
-                        }
-                    }];
+                        }];
 
-                };
-                
-                if( [photoImage isDataAvailable] != YES ){
-                    [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
-                        if( error == nil ){
-                            block();
-                        }else{
-                            [taskCompletion setError:error];
-                        }
-                    }];
-                }else{
-                    block();
-                }
+                    };
+                    
+                    if( [photoImage isDataAvailable] != YES ){
+                        [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+                            if( error == nil ){
+                                block();
+                            }else{
+                                [taskCompletion setError:error];
+                            }
+                        }];
+                    }else{
+                        block();
+                    }
                 }
             }];
             if( startBlock != nil ){
@@ -268,9 +298,17 @@ static IDPStorageManager *s_storageManager = nil;
             id result = task.result;
             
             UIImage *image = [result isKindOfClass:[UIImage class]] ? result : nil;
-        [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectId completion:^(NSError *error) {
+            
+            if( image != nil ){
+                // ストレージキャッシュに保存
+                [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectId completion:^(NSError *error) {
 
-            }];
+                }];
+                
+                // キャッシュに保存
+                [self.cahe setObject:image forKey:objectId];
+            }
+
             
             if( completion != nil ){
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -280,22 +318,26 @@ static IDPStorageManager *s_storageManager = nil;
             
             return nil;
         }];
+    }
     
+    return cachedImage;
 }
 
-- (void) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion
+- (UIImage *) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion
 {
-    [self loadImageWithObjectID:objectID startBlock:nil completion:completion];
+    return [self loadImageWithObjectID:objectID startBlock:nil completion:completion];
 }
 
-
-- (void) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
+- (UIImage *) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
-    [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
-        [self loadImageWithPhotoImage:object startBlock:startBlock completion:completion];
-    }];
-
+    UIImage *cachedImage = [self.cahe objectForKey:objectID];
+    if( cachedImage == nil ){
+        PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
+        [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+            [self loadImageWithPhotoImage:object startBlock:startBlock completion:completion];
+        }];
+    }
+    return cachedImage;
 }
 
 - (void) cancelAllLoad

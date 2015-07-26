@@ -19,16 +19,21 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     
-    [[IDPStorageManager defaultManager] loadImageWithPhotoImage:self.photoImage startBlock:^(NSOperation *operation) {
+    UIImage *image = [[IDPStorageManager defaultManager] loadImageWithPhotoImage:self.photoImage startBlock:^(NSOperation *operation) {
         
     } completion:^(UIImage *image, NSError *error) {
         self.imageView.image = image;
         [MBProgressHUD hideHUDForView:self.view animated:YES];
     }];
     
-
+    if( image == nil ){
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    }
+    
+    
+    self.imageView.image = image;
+    
 }
 
 - (void)didReceiveMemoryWarning {
