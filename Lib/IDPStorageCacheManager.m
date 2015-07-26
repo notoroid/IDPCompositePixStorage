@@ -15,14 +15,16 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
 
 @interface IDPStorageCacheManager ()
 {
-    NSOperationQueue *_operationQueue;
+    NSOperationQueue *_loadOperationQueue;
+    NSOperationQueue *_saveOperationQueue;
     NSManagedObjectContext *_writerContext;
 }
 // for CoreData
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
-@property (readonly,nonatomic) NSOperationQueue *operationQueue;
+@property (readonly,nonatomic) NSOperationQueue *loadOperationQueue;
+@property (readonly,nonatomic) NSOperationQueue *saveOperationQueue;
 @end
 
 @implementation IDPStorageCacheManager
@@ -31,13 +33,22 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
 
-- (NSOperationQueue *)operationQueue
+- (NSOperationQueue *)loadOperationQueue
 {
-    if( _operationQueue == nil ){
-        _operationQueue = [[NSOperationQueue alloc] init];
-        _operationQueue.maxConcurrentOperationCount = 3;
+    if( _loadOperationQueue == nil ){
+        _loadOperationQueue = [[NSOperationQueue alloc] init];
+        _loadOperationQueue.maxConcurrentOperationCount = 3;
     }
-    return _operationQueue;
+    return _loadOperationQueue;
+}
+
+- (NSOperationQueue *)saveOperationQueue
+{
+    if( _saveOperationQueue == nil ){
+        _saveOperationQueue = [[NSOperationQueue alloc] init];
+        _saveOperationQueue.maxConcurrentOperationCount = 1;
+    }
+    return _saveOperationQueue;
 }
 
 + (instancetype) defaultManager
@@ -49,7 +60,7 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
     return s_StorageCacheManager;
 }
 
-- (void) imageLoadWithPath:(NSString *)path completion:(void (^)(UIImage *image,NSError *error))completion
+- (NSOperation *) imageLoadWithPath:(NSString *)path completion:(void (^)(UIImage *image,NSError *error))completion
 {
     NSManagedObjectContext *temporaryContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
     temporaryContext.parentContext = self.managedObjectContext;
@@ -82,7 +93,9 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
             });
         }
     }];
-    [self.operationQueue addOperation:operation ];
+    [self.loadOperationQueue addOperation:operation];
+    
+    return operation;
 }
 
 - (void) storeImage:(UIImage *)image withPath:(NSString *)path completion:(void (^)(NSError *error))completion
@@ -93,8 +106,6 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
     temporaryContext.parentContext = self.managedObjectContext;
     
     NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-        
-        
         
         NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
         // Edit the entity name as appropriate.
@@ -122,25 +133,29 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
             temporaryImage.cacheName = path;
             temporaryImage.storageCacheImageData = temporaryImageData;
 
-            [temporaryContext performBlock:^{
-                if( [temporaryContext hasChanges] == YES){
+            __weak NSManagedObjectContext *weakTemporaryContext = temporaryContext;
+            __weak NSManagedObjectContext *weakManagedObjectContext = self.managedObjectContext;
+            __weak NSManagedObjectContext *weakWriterContext = _writerContext;
+            
+            [weakTemporaryContext performBlock:^{
+                if( [weakTemporaryContext hasChanges] == YES){
                     NSError *error = nil;
-                    if( [temporaryContext save:&error] != YES ){
+                    if( [weakTemporaryContext save:&error] != YES ){
                         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
                         abort();
                     }else{
-                        [self.managedObjectContext performBlock:^{
-                            if( [self.managedObjectContext hasChanges] == YES){
+                        [weakManagedObjectContext performBlock:^{
+                            if( [weakManagedObjectContext hasChanges] == YES){
                                 NSError *error = nil;
-                                if( [self.managedObjectContext save:&error] != YES ){
+                                if( [weakManagedObjectContext save:&error] != YES ){
                                     NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
                                     abort();
                                 }else{
                                     // データを書き込み
-                                    [_writerContext performBlock:^{
-                                        if( [_writerContext hasChanges] == YES){
+                                    [weakWriterContext performBlock:^{
+                                        if( [weakWriterContext hasChanges] == YES){
                                             NSError *error = nil;
-                                            if( [_writerContext save:&error] != YES ){
+                                            if( [weakWriterContext save:&error] != YES ){
                                                 NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
                                                 abort();
                                             }else{
@@ -171,8 +186,7 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
         }
     }];
     
-    NSLog(@"add operaton.");
-    [self.operationQueue addOperation:operation ];
+    [self.saveOperationQueue addOperation:operation ];
     
 }
 

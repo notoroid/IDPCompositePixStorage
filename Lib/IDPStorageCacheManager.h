@@ -14,7 +14,7 @@
 
 + (instancetype) defaultManager;
 
-- (void) imageLoadWithPath:(NSString *)path completion:(void (^)(UIImage *image,NSError *error))completion;;
+- (NSOperation *) imageLoadWithPath:(NSString *)path completion:(void (^)(UIImage *image,NSError *error))completion;;
 - (void) storeImage:(UIImage *)image withPath:(NSString *)path completion:(void (^)(NSError *error))completion;
 
 @end
