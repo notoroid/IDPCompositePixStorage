@@ -205,7 +205,7 @@ static IDPStorageManager *s_storageManager = nil;
     [self loadImageWithPhotoImage:photoImage startBlock:nil completion:completion];
 }
 
-- (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(AFHTTPRequestOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
+- (void) loadImageWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 {
     NSString *path = [photoImage objectForKey:@"path"];
     if( path.length > 0 ){
@@ -231,7 +231,7 @@ static IDPStorageManager *s_storageManager = nil;
         taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
             BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-            [[IDPStorageCacheManager defaultManager] imageLoadWithPath:path completion:^(UIImage *image, NSError *error) {
+            NSOperation *operation = [[IDPStorageCacheManager defaultManager] imageLoadWithPath:path completion:^(UIImage *image, NSError *error) {
                 if( image != nil ){
                     [taskCompletion setResult:image];
                 }else{
@@ -259,6 +259,9 @@ static IDPStorageManager *s_storageManager = nil;
                     }];
                 }
             }];
+            if( startBlock != nil ){
+                startBlock(operation);
+            }
             
             return taskCompletion.task;
         }];
@@ -292,7 +295,7 @@ static IDPStorageManager *s_storageManager = nil;
 }
 
 
-- (void) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(AFHTTPRequestOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
+- (void) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
 {
     PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
     [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
