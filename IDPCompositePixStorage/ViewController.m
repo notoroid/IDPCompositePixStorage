@@ -76,9 +76,16 @@
     }];
 }
 
+- (void) onCancelUpload:(id)sender
+{
+    [[IDPStorageManager defaultManager] cancelAllStore];
+}
+
 - (void) imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     [self dismissViewControllerAnimated:YES completion:^{
+        
+        
         UIView *boardView = [[UIView alloc] initWithFrame:(CGRect){CGPointZero,self.view.frame.size}];
         boardView.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:.5f];
         boardView.opaque = NO;
@@ -123,12 +130,21 @@
             
             UIImage *resizedImage = task.result;
             
+            self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(onCancelUpload:)];
+            self.navigationItem.rightBarButtonItem.enabled = NO;
+            
             [[IDPStorageManager defaultManager] storeWithImage:resizedImage filename:filename
                 completion:^(PFObject *photoImage, NSError *error) {
                     [boardView removeFromSuperview];
                     [hud hide:YES];
                     
+                    self.navigationItem.leftBarButtonItem = nil;
+                    self.navigationItem.rightBarButtonItem.enabled = YES;
+
+                    
                     if( error == nil ){
+                        NSAssert(photoImage != nil , @"photoImage is nil.");
+                        
                         [taskCompletionSource setResult:@{}];
                     }else{
                         [taskCompletionSource setError:error];

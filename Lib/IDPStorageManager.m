@@ -180,7 +180,7 @@ static IDPStorageManager *s_storageManager = nil;
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         [taskCompletion setError:error];
                     }
-                                                     ];
+                ];
                 
                 if( progress != nil ){
                     [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
@@ -196,34 +196,36 @@ static IDPStorageManager *s_storageManager = nil;
 
 
     taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
-        id result = task.result;
+        if( task.error == nil ){
+            id result = task.result;
 
-        NSDictionary *dict = [result isKindOfClass:[NSDictionary class]] ? result : nil;
-        NSString *objectID = dict[@"objectID"];
+            NSDictionary *dict = [result isKindOfClass:[NSDictionary class]] ? result : nil;
+            NSString *objectID = dict[@"objectID"];
 
-        if( objectID.length > 0 ){
-            BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
+            if( objectID.length > 0 ){
+                BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-            PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
-            [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
-                if( error == nil ){
-                    // ストレージキャッシュに保存
-                    [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
+                PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
+                [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+                    if( error == nil ){
+                        // ストレージキャッシュに保存
+                        [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
+                            
+                        }];
                         
-                    }];
-                    
-                    // キャッシュに保存
-                    [self.cahe setObject:image forKey:objectID];
-                    
-                    [taskCompletion setResult:object];
-                }else{
-                    [taskCompletion setError:error];
-                }
-            }];
-            return taskCompletion.task;
+                        // キャッシュに保存
+                        [self.cahe setObject:image forKey:objectID];
+                        
+                        [taskCompletion setResult:object];
+                    }else{
+                        [taskCompletion setError:error];
+                    }
+                }];
+                return taskCompletion.task;
+            }
         }
 
-        return nil;
+        return [BFTask taskWithError:task.error];
     }];
     
     taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
