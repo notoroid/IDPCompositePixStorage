@@ -4,5 +4,5 @@ platform :ios, '8.0'
 
 pod 'AFNetworking'
 pod 'Parse'
-pod 'Bolts'
+pod 'Bolts/Tasks'
 pod 'MBProgressHUD'
