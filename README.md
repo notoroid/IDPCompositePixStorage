@@ -11,3 +11,16 @@ or
 
 cocoapod update
 open [yourproject].xcworkspace
+
+
+Configure Parse
+
+Add Classses in Parse - Data.
+UploadTicket,PhotoImage,StoreSubFolder
+
+Add Parameter in Parse - Config.
+UploadTicketPrefix your image prefix.
+LoadURL load.php,absolute URL.
+UploadURL upload.php,absolute URL.
+
+
