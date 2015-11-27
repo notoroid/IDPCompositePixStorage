@@ -129,10 +129,10 @@ static IDPStorageManager *s_storageManager = nil;
         [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
             // config の取得
             if( error == nil ){
-                NSString *prefix = config[@"UploadTicketPrefix"];
+                NSString *prefix = config[IDP_UPLOAD_TICKET_PREFIX_KEY_NAME];
                 NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
                 
-                [[PFObject objectWithClassName:@"UploadTicket" dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *PF_NULLABLE_S error)
+                [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *PF_NULLABLE_S error)
                  {
                      if( error == nil ){
                          [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
@@ -159,7 +159,7 @@ static IDPStorageManager *s_storageManager = nil;
 
         [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
             if( error == nil ){
-                NSString *uploadURL = config[@"UploadURL"];
+                NSString *uploadURL = config[IDP_UPLOAD_URL_KEY_NAME];
                 
                 AFHTTPRequestOperation *operation = [self.operationManager POST:uploadURL parameters:@{@"name":dict[@"name"]}
                     constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
@@ -205,7 +205,7 @@ static IDPStorageManager *s_storageManager = nil;
             if( objectID.length > 0 ){
                 BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
-                PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
+                PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
                 [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
                     if( error == nil ){
                         // ストレージキャッシュに保存
@@ -264,7 +264,7 @@ static IDPStorageManager *s_storageManager = nil;
                         
                         [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
                             if( error == nil ){
-                                NSString *loadURL = config[@"LoadURL"];
+                                NSString *loadURL = config[IDP_LOAD_URL_KEY_NAME];
                                 
                                 AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                     [taskCompletion setResult:responseObject];
@@ -342,7 +342,7 @@ static IDPStorageManager *s_storageManager = nil;
 {
     UIImage *cachedImage = [self.cahe objectForKey:objectID];
     if( cachedImage == nil ){
-        PFQuery *query = [PFQuery queryWithClassName:@"PhotoImage"];
+        PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
         [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
             [self loadImageWithPhotoImage:object startBlock:startBlock completion:completion];
         }];

@@ -11,6 +11,14 @@
 @class PFObject;
 @class AFHTTPRequestOperation;
 
+#define IDP_UPLOAD_URL_KEY_NAME @"UploadURL"
+#define IDP_LOAD_URL_KEY_NAME @"LoadURL"
+#define IDP_UPLOAD_TICKET_PREFIX_KEY_NAME @"UploadTicketPrefix"
+
+#define IDP_PHOTO_IMAGE_CLASS_NAME @"PhotoImage"
+#define IDP_UPLOAD_TICKET_CLASS_NAME @"UploadTicket"
+#define IDF_STORE_SUB_FOLDER_CLASS_NAME @"StoreSubFolder"
+
 @interface IDPStorageManager : NSObject
 
 + (instancetype) defaultManager;
