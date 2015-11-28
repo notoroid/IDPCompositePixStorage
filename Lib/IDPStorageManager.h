@@ -11,9 +11,9 @@
 @class PFObject;
 @class AFHTTPRequestOperation;
 
-#define IDP_UPLOAD_URL_KEY_NAME @"UploadURL"
-#define IDP_LOAD_URL_KEY_NAME @"LoadURL"
-#define IDP_UPLOAD_TICKET_PREFIX_KEY_NAME @"UploadTicketPrefix"
+#define IDP_UPLOAD_URL_KEY_NAME @"IDPUploadURL"
+#define IDP_LOAD_URL_KEY_NAME @"IDPLoadURL"
+#define IDP_UPLOAD_TICKET_PREFIX_KEY_NAME @"IDPUploadTicketPrefix"
 
 #define IDP_PHOTO_IMAGE_CLASS_NAME @"PhotoImage"
 #define IDP_UPLOAD_TICKET_CLASS_NAME @"UploadTicket"

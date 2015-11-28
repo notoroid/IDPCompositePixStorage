@@ -6,10 +6,15 @@
 	use Parse\ParseClient;
 	use Parse\ParseObject;
 	use Parse\ParseQuery;
-	
+
 	define('PARSE_APPLICATION_ID', '<YOUR_PARSE_APPLICATION_ID>' );
-	define('PARSE_REST_API_KEY', '<YOUR_PARSE_REST_API_KEY>' );
-	define('PARSE_MASTER_KEY', '<YOUR_PARSE_MASTER_KEY>' );
+	define('PARSE_APPLICATION_ID', '<YOUR_PARSE_APPLICATION_ID>' );
+	define('PARSE_APPLICATION_ID', '<YOUR_PARSE_APPLICATION_ID>' );
+
+	
+	define('IDP_PHOTO_IMAGE_CLASS_NAME', 'PhotoImage' );
+	define('IDP_UPLOAD_TICKET_CLASS_NAME', 'UploadTicket' );
+	define('IDF_STORE_SUB_FOLDER_CLASS_NAME', 'StoreSubFolder' );
 	
 	if( PARSE_APPLICATION_ID == '<YOUR_PARSE_APPLICATION_ID>' || PARSE_REST_API_KEY == '<YOUR_PARSE_REST_API_KEY>' || PARSE_MASTER_KEY == '<YOUR_PARSE_MASTER_KEY>'){
 		
@@ -29,7 +34,7 @@
 		$subFolderPath = 'images';
 	
 		// SubFolder検出
-		$queryStoreSubFolder = new ParseQuery('StoreSubFolder');
+		$queryStoreSubFolder = new ParseQuery(IDF_STORE_SUB_FOLDER_CLASS_NAME);
 		$resultsStoreSubFolder = $queryStoreSubFolder->find();
 		
 		// ランダムで取得
@@ -51,7 +56,7 @@
 		// チケット名を取得
 		$s_ticketName =  htmlspecialchars($_POST['name'], ENT_QUOTES);
 	
-		$query = new ParseQuery('UploadTicket');
+		$query = new ParseQuery(IDP_UPLOAD_TICKET_CLASS_NAME);
 		$query->equalTo('name', $s_ticketName );
 		$results = $query->find();
 	
@@ -97,7 +102,7 @@
 		        // Save file in the uploads folder.
 		        move_uploaded_file($_FILES["file"]["tmp_name"], getcwd() . '/' . $subFolderPath . '/' . $name);
 		
-	    	    $photoImage = new ParseObject("PhotoImage");
+	    	    $photoImage = new ParseObject(IDP_PHOTO_IMAGE_CLASS_NAME);
 			    $photoImage->set('path', $subFolderPath . '/' . $name);
 		    
 				try {
