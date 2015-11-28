@@ -81,7 +81,7 @@
 			
 		    // Allowed extentions.
 		    $allowedExts = array('gif','jpeg','jpg','png','pdf');
-		    $allowedMINEs = array('image/gif','image/jpeg','image/pjpeg','image/x-png','image/png','application/pdf');
+		    $allowedMINEs = array('image/gif','image/jpeg','image/jpeg','image/x-png','image/png','application/pdf');
 		    
 		    // Get filename.
 		    $temp = explode(".", $_FILES["file"]["name"]);
