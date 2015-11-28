@@ -10,7 +10,7 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <Bolts/Bolts.h>
 #import <Parse/Parse.h>
-#import <AFNetworking/AFNetworking.h>
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "IDPStorageCacheManager.h"
 
 static IDPStorageManager *s_storageManager = nil;

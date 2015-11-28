@@ -22,7 +22,10 @@ Pod::Spec.new do |s|
   s.resources = ['Lib/IDPStorageManagerModel.xcdatamodeld','Lib/IDPStorageManagerModel.xcdatamodeld/*.xcdatamodel']
   s.preserve_paths = 'Lib/IDPStorageManagerModel.xcdatamodeld'
   s.framework  = 'CoreData'  
-  s.dependency 'AFNetworking'
+  s.dependency 'AFNetworking/Serialization'
+  s.dependency 'AFNetworking/Security'
+  s.dependency 'AFNetworking/Reachability'
+  s.dependency 'AFNetworking/NSURLSession'
   s.dependency 'Parse'
   s.dependency 'Bolts/Tasks'
 

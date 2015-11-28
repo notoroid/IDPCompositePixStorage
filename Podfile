@@ -1,8 +1,10 @@
 source 'https://github.com/CocoaPods/Specs.git'
 
-platform :ios, '8.0'
+platform :ios, '9.0'
 
-pod 'AFNetworking'
+pod 'AFNetworking/Reachability'
+pod 'AFNetworking/NSURLConnection'
+pod 'AFNetworking/NSURLSession'
 pod 'Parse'
 pod 'Bolts/Tasks'
 pod 'MBProgressHUD'
