@@ -10,40 +10,44 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <Bolts/Bolts.h>
 #import <Parse/Parse.h>
-#import <AFNetworking/AFHTTPRequestOperationManager.h>
+#import <AFNetworking/AFHTTPSessionManager.h>
 #import "IDPStorageCacheManager.h"
 
 static IDPStorageManager *s_storageManager = nil;
-
+static NSDictionary *s_supportMINE = nil;
 
 @interface IDPStorageManager ()
 {
-    AFHTTPRequestOperationManager *_operationManager;
-    AFHTTPRequestOperationManager *_imageOperationManager;
+    AFHTTPSessionManager *_storeHTTPSessionManager;
+    NSMutableDictionary *_dictUploadURLSessionDataTask;
+    NSMutableDictionary *_dictLoadURLSessionDataTask;
+    
+    AFHTTPSessionManager *_loadHTTPSessionManager;
+    
     NSCache *_cahe;
     id _observerApplicationDidReceiveMemoryWarning;
 }
-@property(readonly,nonatomic) AFHTTPRequestOperationManager *operationManager;
-@property(readonly,nonatomic) AFHTTPRequestOperationManager *imageOperationManager;
 @property(readonly,nonatomic) NSCache *cahe;
+@property(readonly,nonatomic) NSMutableDictionary *dictUploadURLSessionDataTask;
+@property(readonly,nonatomic) NSMutableDictionary *dictLoadURLSessionDataTask;
 @end
 
 @implementation IDPStorageManager
 
-- (AFHTTPRequestOperationManager *)operationManager
+- (NSMutableDictionary *)dictUploadURLSessionDataTask
 {
-    if( _operationManager == nil ){
-        _operationManager = [AFHTTPRequestOperationManager manager];
+    if( _dictUploadURLSessionDataTask == nil ){
+        _dictUploadURLSessionDataTask = [NSMutableDictionary dictionary];
     }
-    return _operationManager;
+    return _dictUploadURLSessionDataTask;
 }
-- (AFHTTPRequestOperationManager *)imageOperationManager
+
+- (NSMutableDictionary *)dictLoadURLSessionDataTask
 {
-    if( _imageOperationManager == nil ){
-        _imageOperationManager = [AFHTTPRequestOperationManager manager];
-        _imageOperationManager.responseSerializer = [AFImageResponseSerializer serializer];
+    if( _dictLoadURLSessionDataTask == nil ){
+        _dictLoadURLSessionDataTask = [NSMutableDictionary dictionary];
     }
-    return _imageOperationManager;
+    return _dictLoadURLSessionDataTask;
 }
 
 - (NSCache *)cahe
@@ -59,6 +63,16 @@ static IDPStorageManager *s_storageManager = nil;
 {
     self = [super init];
     if( self != nil ){
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            s_supportMINE = @{ @"gif":@"image/gif"
+                              ,@"jpeg":@"image/jpeg"
+                              ,@"jpg":@"image/jpeg"
+                              ,@"png":@"image/image/png"
+                              ,@"pdf":@"application/pdf"
+                               };
+        });
+        
         _observerApplicationDidReceiveMemoryWarning = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
             [self.cahe removeAllObjects];
         }];
@@ -82,7 +96,12 @@ static IDPStorageManager *s_storageManager = nil;
 
 - (void) cancelAllStore
 {
-    [self.operationManager.operationQueue cancelAllOperations];
+    [_dictUploadURLSessionDataTask.allValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSDictionary *dict = obj;
+        NSURLSessionDataTask *sessionDataTask = dict[@"task"];
+        [sessionDataTask cancel];
+    }];
+    _dictLoadURLSessionDataTask = nil;
 }
 
 - (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
@@ -161,31 +180,42 @@ static IDPStorageManager *s_storageManager = nil;
             if( error == nil ){
                 NSString *uploadURL = config[IDP_UPLOAD_URL_KEY_NAME];
                 
-                AFHTTPRequestOperation *operation = [self.operationManager POST:uploadURL parameters:@{@"name":dict[@"name"]}
-                    constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-                        NSString *filename = dict[@"filename"];
-                        filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
-                        NSString *MINE = dict[@"MINE"];
-                        NSData *data = dict[@"data"];
-                        
-                        // イメージデータを追加
-                        [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
-                    }
-                    success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                        
-                        NSLog(@"responseObject=%@",responseObject);
-                        
-                        [taskCompletion setResult:responseObject];
-                        
-                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                        [taskCompletion setError:error];
-                    }
-                ];
-                
-                if( progress != nil ){
-                    [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
-                        progress(bytesWritten,totalBytesWritten,totalBytesExpectedToWrite);
+                if( _storeHTTPSessionManager == nil ){
+                    _storeHTTPSessionManager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:uploadURL].baseURL];
+                    _storeHTTPSessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
+                    
+                    __weak IDPStorageManager *weakSelf = self;
+                    [_storeHTTPSessionManager setTaskDidSendBodyDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionTask * _Nonnull task, int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
+
+                        void (^progress)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) = weakSelf.dictUploadURLSessionDataTask[@(task.taskIdentifier)][@"progress"];
+                        if( progress != nil ){
+                            progress(bytesSent, totalBytesSent, totalBytesExpectedToSend);
+                        }
                     }];
+                }
+                
+                NSURLSessionDataTask *sessionDataTask = [_storeHTTPSessionManager POST:uploadURL parameters:@{@"name":dict[@"name"]} constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+                    NSString *filename = dict[@"filename"];
+                    filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
+                    NSString *MINE = dict[@"MINE"];
+                    NSData *data = dict[@"data"];
+                    
+                    // イメージデータを追加
+                    [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
+                } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                    [self.dictUploadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
+                    
+                    NSLog(@"responseObject=%@",responseObject);
+                    
+                    [taskCompletion setResult:responseObject];
+                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                    [self.dictUploadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
+                    
+                    [taskCompletion setError:error];
+                }];
+                
+                if( sessionDataTask != nil ){
+                    self.dictUploadURLSessionDataTask[@(sessionDataTask.taskIdentifier)] = progress == nil ? @{@"task":sessionDataTask} : @{@"task":sessionDataTask,@"progress":progress};
                 }
             }else{
                 [taskCompletion setError:error];
@@ -266,9 +296,18 @@ static IDPStorageManager *s_storageManager = nil;
                             if( error == nil ){
                                 NSString *loadURL = config[IDP_LOAD_URL_KEY_NAME];
                                 
-                                AFHTTPRequestOperation *operation = [self.imageOperationManager POST:loadURL parameters:@{@"path":path} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                if( _loadHTTPSessionManager == nil ) {
+                                    _loadHTTPSessionManager = [AFHTTPSessionManager manager];
+                                    _loadHTTPSessionManager.responseSerializer = [AFImageResponseSerializer serializer];
+                                }
+                                
+                                NSURLSessionDataTask *task = [_loadHTTPSessionManager POST:loadURL parameters:@{@"path":path} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                                    [self.dictLoadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
+                                    
                                     [taskCompletion setResult:responseObject];
-                                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                                    [self.dictLoadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
+                                    
                                     [taskCompletion setError:error];
                                 }];
                                 
@@ -276,7 +315,9 @@ static IDPStorageManager *s_storageManager = nil;
                                     startBlock(operation);
                                 }
                                 
-                                
+                                if( task != nil ){
+                                    self.dictLoadURLSessionDataTask[@(task.taskIdentifier)] = @{@"task":task};
+                                }
                             }else{
                                 [taskCompletion setError:error];
                             }
@@ -352,7 +393,12 @@ static IDPStorageManager *s_storageManager = nil;
 
 - (void) cancelAllLoad
 {
-    [self.imageOperationManager.operationQueue cancelAllOperations];
+    [_dictLoadURLSessionDataTask.allValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSDictionary *dict = obj;
+        NSURLSessionDataTask *sessionDataTask = dict[@"task"];
+        [sessionDataTask cancel];
+    }];
+    _dictLoadURLSessionDataTask = nil;
 }
 
 @end
