@@ -126,13 +126,13 @@ static IDPStorageManager *s_storageManager = nil;
         NSString *hash = [self encryptToMD5WithData:data];
             // Uploadチケット発行
 
-        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
             // config の取得
             if( error == nil ){
                 NSString *prefix = config[IDP_UPLOAD_TICKET_PREFIX_KEY_NAME];
                 NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
                 
-                [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *PF_NULLABLE_S error)
+                [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *_Nullable error)
                  {
                      if( error == nil ){
                          [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
@@ -157,7 +157,7 @@ static IDPStorageManager *s_storageManager = nil;
         NSDictionary *dict = task.result;
 
 
-        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
             if( error == nil ){
                 NSString *uploadURL = config[IDP_UPLOAD_URL_KEY_NAME];
                 
@@ -206,7 +206,7 @@ static IDPStorageManager *s_storageManager = nil;
                 BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
                 PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
-                [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+                [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
                     if( error == nil ){
                         // ストレージキャッシュに保存
                         [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
@@ -262,7 +262,7 @@ static IDPStorageManager *s_storageManager = nil;
                         PFObject *photoImage = task.result;
                         NSString *path = photoImage[@"path"];
                         
-                        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error){
+                        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
                             if( error == nil ){
                                 NSString *loadURL = config[IDP_LOAD_URL_KEY_NAME];
                                 
@@ -285,7 +285,7 @@ static IDPStorageManager *s_storageManager = nil;
                     };
                     
                     if( [photoImage isDataAvailable] != YES ){
-                        [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+                        [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject *_Nullable object,  NSError *_Nullable error){
                             if( error == nil ){
                                 block();
                             }else{
@@ -343,7 +343,7 @@ static IDPStorageManager *s_storageManager = nil;
     UIImage *cachedImage = [self.cahe objectForKey:objectID];
     if( cachedImage == nil ){
         PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
-        [query getObjectInBackgroundWithId:objectID block:^(PFObject *PF_NULLABLE_S object,  NSError *PF_NULLABLE_S error){
+        [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
             [self loadImageWithPhotoImage:object startBlock:startBlock completion:completion];
         }];
     }
