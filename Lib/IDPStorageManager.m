@@ -415,10 +415,6 @@ static NSDictionary *s_supportMINE = nil;
                                     [taskCompletion setError:error];
                                 }];
                                 
-                                if( startBlock != nil ){
-                                    startBlock(operation);
-                                }
-                                
                                 if( task != nil ){
                                     self.dictLoadURLSessionDataTask[@(task.taskIdentifier)] = @{@"task":task};
                                 }
