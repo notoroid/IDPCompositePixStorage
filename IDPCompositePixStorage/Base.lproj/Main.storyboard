@@ -40,11 +40,11 @@
                                         <rect key="frame" x="0.0" y="86" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="wcB-nm-BwJ" id="nX3-EO-zAT">
-                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="SXM-Ov-rlk">
-                                                    <rect key="frame" x="15" y="0.0" width="570" height="43.5"/>
+                                                    <rect key="frame" x="15" y="0.0" width="570" height="43"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -72,6 +72,11 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="nn7-qh-cUV">
+                        <barButtonItem key="leftBarButtonItem" title="UploadPDF" id="efm-5H-hWd">
+                            <connections>
+                                <action selector="onUploadPDF:" destination="vXZ-lx-hvc" id="DSZ-WZ-W1d"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" title="Upload" id="BiC-Ww-cdR">
                             <connections>
                                 <action selector="onUploadImage:" destination="vXZ-lx-hvc" id="VT4-df-jBZ"/>

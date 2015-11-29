@@ -79,6 +79,28 @@
     }];
 }
 
+- (IBAction)onUploadPDF:(id)sender
+{
+    UIView *boardView = [[UIView alloc] initWithFrame:(CGRect){CGPointZero,self.view.frame.size}];
+    boardView.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:.5f];
+    boardView.opaque = NO;
+    boardView.autoresizingMask = self.view.autoresizingMask;
+    [self.view addSubview:boardView];
+    
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.mode = MBProgressHUDModeAnnularDeterminate;
+    hud.labelText = @"Uploading";
+    
+    NSURL *URL = [[NSBundle mainBundle] URLForResource:@"sample" withExtension:@"pdf"];
+    [[IDPStorageManager defaultManager] storeWithURL:URL filename:@"sample.pdf" completion:^(PFObject *photoImage, NSError *error) {
+        [boardView removeFromSuperview];
+        [hud hide:YES];
+        
+        NSString *path = photoImage[@"path"];
+        NSLog(@"path=%@",path);
+    }];
+}
+
 - (void) onCancelUpload:(id)sender
 {
     [[IDPStorageManager defaultManager] cancelAllStore];

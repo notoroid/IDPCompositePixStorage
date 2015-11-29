@@ -104,11 +104,6 @@ static NSDictionary *s_supportMINE = nil;
     _dictLoadURLSessionDataTask = nil;
 }
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
-{
-    [self storeWithImage:image filename:filename completion:completion progress:nil];
-}
-
 - (NSString*)encryptToMD5WithData:(NSData *)data {
     // Create byte array of unsigned chars
     unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
@@ -125,57 +120,154 @@ static NSDictionary *s_supportMINE = nil;
     return output;
 }
 
+- (NSString*)encryptToMD5WithURL:(NSURL *)URL error:(NSError **)error
+{
+
+    NSFileHandle *handle = [NSFileHandle fileHandleForReadingFromURL:URL error:error];
+    if (*error != nil) {
+        return nil;
+    }
+    
+    CC_MD5_CTX md5;
+    CC_MD5_Init (&md5);
+    
+    BOOL continued = YES;
+    while (continued) {
+        @autoreleasepool {
+            
+            NSData *fileData = [[NSData alloc] initWithData:[handle readDataOfLength: 4096]];
+            CC_MD5_Update (&md5, [fileData bytes], (CC_LONG) [fileData length]);
+            
+            if ([fileData length] < 4096) {
+                continued = NO;
+            }
+        }
+    }
+
+    // Create byte array of unsigned chars
+    unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
+    CC_MD5_Final (md5Buffer, &md5);
+    
+    // Convert unsigned char buffer to NSString of hex values
+    NSMutableString *output = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
+    for(int i = 0; i < CC_MD5_DIGEST_LENGTH; i++){
+        [output appendFormat:@"%02x",md5Buffer[i]];
+    }
+
+    return output;
+}
+
+
+
 - (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
 {
+    [self storeWithObject:image filename:filename completion:completion progress:progress];
+}
+
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+{
+    [self storeWithObject:image filename:filename completion:completion progress:nil];
+}
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
+{
+    [self storeWithObject:URL filename:filename completion:completion progress:progress];
+}
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+{
+    [self storeWithObject:URL filename:filename completion:completion progress:nil];
+}
+
+- (void) storeWithObject:(id)object filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
+{
+    
+    UIImage *image = nil;
     __block BFTask *taskStore = [BFTask taskWithResult:nil];
-    
-    
-    taskStore = [taskStore continueWithExecutor:[BFExecutor executorWithDispatchQueue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0)] withBlock:^id(BFTask *task) {
-        NSData *data = nil;
-        @autoreleasepool {
-            data = UIImageJPEGRepresentation(image, 0.9);
-        }
-        return data;
-    }];
-    
-    taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
-        BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
-
-        NSData *data = task.result;
-        NSString *hash = [self encryptToMD5WithData:data];
-            // Uploadチケット発行
-
-        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
-            // config の取得
-            if( error == nil ){
-                NSString *prefix = config[IDP_UPLOAD_TICKET_PREFIX_KEY_NAME];
-                NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
-                
-                [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *_Nullable error)
-                 {
-                     if( error == nil ){
-                         [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
-                     }else{
-                         [taskCompletion setError:error];
-                         
-                     }
-                 }];
-            }else{
-                [taskCompletion setError:error];
+    if( [object isKindOfClass:[UIImage class]] ){
+        /*UIImage **/image = object;
+        
+        taskStore = [taskStore continueWithExecutor:[BFExecutor executorWithDispatchQueue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0)] withBlock:^id(BFTask *task) {
+            NSData *data = nil;
+            @autoreleasepool {
+                data = UIImageJPEGRepresentation(image, 0.9);
             }
-
+            return data;
         }];
-
-        return taskCompletion.task;
-    }];
+        
+        taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
+            BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
+            
+            NSData *data = task.result;
+            NSString *hash = [self encryptToMD5WithData:data];
+            // Uploadチケット発行
+            
+            [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
+                // config の取得
+                if( error == nil ){
+                    NSString *prefix = config[IDP_UPLOAD_TICKET_PREFIX_KEY_NAME];
+                    NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
+                    
+                    [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *_Nullable error){
+                         if( error == nil ){
+                             [taskCompletion setResult:@{@"data":data,@"name":name,@"MINE":@"image/jpeg",@"filename":filename}];
+                         }else{
+                             [taskCompletion setError:error];
+                             
+                         }
+                     }];
+                }else{
+                    [taskCompletion setError:error];
+                }
+                
+            }];
+            
+            return taskCompletion.task;
+        }];
+    }else if( [object isKindOfClass:[NSURL class]] ){
+        NSURL *URL = object;
+        NSError *error = nil;
+        NSString *hash = [self encryptToMD5WithURL:URL error:&error];
+        
+        if( error == nil ){
+            taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task) {
+                BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
+                
+                [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
+                    // config の取得
+                    if( error == nil ){
+                        NSString *prefix = config[IDP_UPLOAD_TICKET_PREFIX_KEY_NAME];
+                        NSString *name = [NSString stringWithFormat:@"%@_%@",prefix,hash];
+                        NSString *MINE = s_supportMINE[[[filename pathExtension] lowercaseString]];
+                        
+                        [[PFObject objectWithClassName:IDP_UPLOAD_TICKET_CLASS_NAME dictionary:@{@"name":name}] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *_Nullable error){
+                             if( error == nil ){
+                                 [taskCompletion setResult:@{@"URL":URL,@"name":name,@"MINE":MINE,@"filename":filename}];
+                             }else{
+                                 [taskCompletion setError:error];
+                             }
+                         }];
+                    }else{
+                        [taskCompletion setError:error];
+                    }
+                    
+                }];
+                
+                return taskCompletion.task;
+            }];
+        }else{
+            taskStore = [BFTask taskWithError:error];
+        }
+        
+    }
+    
 
     taskStore = [taskStore continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask *task)
     {
         BFTaskCompletionSource *taskCompletion = [BFTaskCompletionSource taskCompletionSource];
 
         NSDictionary *dict = task.result;
-
-
+        
         [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
             if( error == nil ){
                 NSString *uploadURL = config[IDP_UPLOAD_URL_KEY_NAME];
@@ -198,10 +290,20 @@ static NSDictionary *s_supportMINE = nil;
                     NSString *filename = dict[@"filename"];
                     filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
                     NSString *MINE = dict[@"MINE"];
-                    NSData *data = dict[@"data"];
                     
-                    // イメージデータを追加
-                    [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
+                    
+                    NSData *data = dict[@"data"];
+                    if( data != nil ){
+                        // イメージデータを追加
+                        [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:MINE];
+                    }
+                    
+                    NSURL *URL = dict[@"URL"];
+                    if( URL != nil){
+                        NSError *error = nil;
+                        [formData appendPartWithFileURL:URL name:@"file" fileName:filename mimeType:MINE error:&error];
+                    }
+                    
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
                     [self.dictUploadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
                     
@@ -238,13 +340,15 @@ static NSDictionary *s_supportMINE = nil;
                 PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
                 [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
                     if( error == nil ){
-                        // ストレージキャッシュに保存
-                        [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
+                        if( image != nil ){
+                            // ストレージキャッシュに保存
+                            [[IDPStorageCacheManager defaultManager] storeImage:image withPath:objectID completion:^(NSError *error) {
+                                
+                            }];
                             
-                        }];
-                        
-                        // キャッシュに保存
-                        [self.cahe setObject:image forKey:objectID];
+                            // キャッシュに保存
+                            [self.cahe setObject:image forKey:objectID];
+                        }
                         
                         [taskCompletion setResult:object];
                     }else{
@@ -400,5 +504,33 @@ static NSDictionary *s_supportMINE = nil;
     }];
     _dictLoadURLSessionDataTask = nil;
 }
+
+- (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    if( [photoImage isDataAvailable] ){
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSURL *URL = [NSURL URLWithString:photoImage[@"path"]];
+            if( completion != nil){
+                completion(URL,nil);
+            }
+        });
+    }else{
+        [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
+            NSURL *URL = [NSURL URLWithString:object[@"path"]];
+            if( completion != nil){
+                completion(URL,error);
+            }
+        }];
+    }
+}
+
+- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
+    [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
+        [self URLWithPhotoImage:object completion:completion];
+    }];
+}
+
 
 @end
