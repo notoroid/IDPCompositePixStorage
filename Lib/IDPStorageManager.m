@@ -16,6 +16,28 @@
 static IDPStorageManager *s_storageManager = nil;
 static NSDictionary *s_supportMINE = nil;
 
+@interface IDPPdfResponseSerializer : AFHTTPResponseSerializer
+@property (strong,nonatomic) NSString *path;
+@end
+
+@implementation IDPPdfResponseSerializer
+- (instancetype)init {
+    self = [super init];
+    if (!self) {
+        return nil;
+    }
+    self.acceptableContentTypes = [[NSSet alloc] initWithObjects:@"application/pdf", nil];
+    return self;
+}
+- (nullable id)responseObjectForResponse:(nullable NSURLResponse *)response data:(nullable NSData *)data error:(NSError * __nullable __autoreleasing *)error {
+    NSString *filename = _path.lastPathComponent;
+    NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+    [data writeToFile:path atomically:YES];
+    return [NSURL fileURLWithPath:path];
+}
+@end
+
+
 @interface IDPStorageManager ()
 {
     AFHTTPSessionManager *_storeHTTPSessionManager;
@@ -501,6 +523,65 @@ static NSDictionary *s_supportMINE = nil;
     _dictLoadURLSessionDataTask = nil;
 }
 
+- (void) loadPDFWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)())startBlock completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    [self URLWithPhotoImage:photoImage completion:^(NSURL *URL,NSString *path,NSError *error) {
+        
+        NSString *filename = path.lastPathComponent;
+        NSString *temporaryPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+        
+        if( [[NSFileManager defaultManager] fileExistsAtPath:temporaryPath] ){
+            NSURL *URL = [NSURL fileURLWithPath:temporaryPath];
+//            NSLog(@"URL=%@",URL);
+            if( completion != nil ){
+                completion(URL,nil);
+            }
+        }else{
+            if (startBlock != nil) {
+                startBlock();
+            }
+            
+            IDPPdfResponseSerializer *pdfResponseSerializer = [IDPPdfResponseSerializer serializer];
+            pdfResponseSerializer.path = path;
+            
+            AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+            manager.responseSerializer = pdfResponseSerializer;
+            [manager POST:URL.absoluteString parameters:@{@"path":path} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                NSURL *URL = responseObject;
+//                NSLog(@"URL=%@",URL);
+                if( completion != nil ){
+                    completion(URL,nil);
+                }
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                if( completion != nil ){
+                    completion(nil,error);
+                }
+            }];
+        }
+        
+    }];
+}
+
+- (void) loadPDFWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    [self loadPDFWithPhotoImage:photoImage completion:completion];
+}
+
+- (void) loadPDFWithObjectID:(NSString *)objectID startBlock:(void (^)())startBlock completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
+    [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
+        [self loadPDFWithPhotoImage:object startBlock:startBlock completion:completion];
+    }];
+}
+
+- (void) loadPDFWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSError *error))completion
+{
+    [self loadPDFWithObjectID:objectID completion:completion];
+}
+
+#pragma mark - Utility method(s)
+
 - (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion
 {
     dispatch_block_t block = ^{
@@ -522,14 +603,6 @@ static NSDictionary *s_supportMINE = nil;
             block();
         }];
     }
-}
-
-- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion
-{
-    PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
-    [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
-        [self URLWithPhotoImage:object completion:completion];
-    }];
 }
 
 @end
