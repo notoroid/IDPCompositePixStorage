@@ -503,19 +503,25 @@ static NSDictionary *s_supportMINE = nil;
 
 - (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion
 {
-    if( [photoImage isDataAvailable] ){
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSURL *URL = [NSURL URLWithString:photoImage[@"path"]];
+    dispatch_block_t block = ^{
+        NSString *path = photoImage[@"path"];
+
+        [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
+            NSString *loadURL = config[IDP_LOAD_URL_KEY_NAME];
+            loadURL = [loadURL stringByAppendingPathComponent:path];
+
+            NSURL *URL = [NSURL URLWithString:loadURL];
             if( completion != nil){
                 completion(URL,nil);
             }
-        });
+        }];
+    };
+    
+    if( [photoImage isDataAvailable] ){
+        block();
     }else{
         [photoImage fetchIfNeededInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
-            NSURL *URL = [NSURL URLWithString:object[@"path"]];
-            if( completion != nil){
-                completion(URL,error);
-            }
+            block();
         }];
     }
 }
@@ -527,6 +533,5 @@ static NSDictionary *s_supportMINE = nil;
         [self URLWithPhotoImage:object completion:completion];
     }];
 }
-
 
 @end
