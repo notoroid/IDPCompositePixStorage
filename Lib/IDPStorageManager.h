@@ -40,8 +40,8 @@
 - (UIImage *) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion;
 - (UIImage *) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 
-- (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion;
-- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSError *error))completion;
+- (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion;
+- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion;
 
 - (void) cancelAllLoad;
 

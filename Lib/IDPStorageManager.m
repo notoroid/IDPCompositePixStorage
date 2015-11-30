@@ -501,18 +501,16 @@ static NSDictionary *s_supportMINE = nil;
     _dictLoadURLSessionDataTask = nil;
 }
 
-- (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion
+- (void) URLWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion
 {
     dispatch_block_t block = ^{
         NSString *path = photoImage[@"path"];
 
         [PFConfig getConfigInBackgroundWithBlock:^(PFConfig *_Nullable config, NSError *_Nullable error){
             NSString *loadURL = config[IDP_LOAD_URL_KEY_NAME];
-            loadURL = [loadURL stringByAppendingPathComponent:path];
-
             NSURL *URL = [NSURL URLWithString:loadURL];
             if( completion != nil){
-                completion(URL,nil);
+                completion(URL,path,nil);
             }
         }];
     };
@@ -526,7 +524,7 @@ static NSDictionary *s_supportMINE = nil;
     }
 }
 
-- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSError *error))completion
+- (void) URLWithObjectID:(NSString *)objectID completion:(void (^)(NSURL *URL,NSString *path,NSError *error))completion
 {
     PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
     [query getObjectInBackgroundWithId:objectID block:^(PFObject *_Nullable object,  NSError *_Nullable error){
