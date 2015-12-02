@@ -23,11 +23,11 @@
 
 + (instancetype) defaultManager;
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress;
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress;
 
 - (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion;
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress;
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress;
 
 - (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion;
 

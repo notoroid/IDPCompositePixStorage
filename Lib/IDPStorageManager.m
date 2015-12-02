@@ -181,7 +181,7 @@ static NSDictionary *s_supportMINE = nil;
 
 
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
 {
     [self storeWithObject:image filename:filename completion:completion progress:progress];
 }
@@ -191,7 +191,7 @@ static NSDictionary *s_supportMINE = nil;
     [self storeWithObject:image filename:filename completion:completion progress:nil];
 }
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress
 {
     [self storeWithObject:URL filename:filename completion:completion progress:progress];
 }
@@ -201,7 +201,7 @@ static NSDictionary *s_supportMINE = nil;
     [self storeWithObject:URL filename:filename completion:completion progress:nil];
 }
 
-- (void) storeWithObject:(id)object filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
+- (void) storeWithObject:(id)object filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
 {
     
     UIImage *image = nil;
@@ -301,13 +301,13 @@ static NSDictionary *s_supportMINE = nil;
                     __weak IDPStorageManager *weakSelf = self;
                     [_storeHTTPSessionManager setTaskDidSendBodyDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionTask * _Nonnull task, int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
 
-                        void (^progress)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) = weakSelf.dictUploadURLSessionDataTask[@(task.taskIdentifier)][@"progress"];
+                        void (^progress)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite) = weakSelf.dictUploadURLSessionDataTask[@(task.taskIdentifier)][@"progress"];
                         if( progress != nil ){
                             progress(bytesSent, totalBytesSent, totalBytesExpectedToSend);
                         }
                     }];
                 }
-                
+
                 NSURLSessionDataTask *sessionDataTask = [_storeHTTPSessionManager POST:uploadURL parameters:@{@"name":dict[@"name"]} constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
                     NSString *filename = dict[@"filename"];
                     filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];

@@ -175,7 +175,7 @@
                         [taskCompletionSource setError:error];
                     }
                 }
-                  progress:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
+                  progress:^(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite) {
                       hud.progress = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
                   }
              ];
