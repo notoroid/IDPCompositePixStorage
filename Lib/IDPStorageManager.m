@@ -326,7 +326,11 @@ static NSDictionary *s_supportMINE = nil;
                         [formData appendPartWithFileURL:URL name:@"file" fileName:filename mimeType:MINE error:&error];
                     }
                     
-                } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                }
+                progress:^(NSProgress * _Nonnull uploadProgress) {
+
+                }
+               success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
                     [self.dictUploadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
                     
                     NSLog(@"responseObject=%@",responseObject);
@@ -427,7 +431,10 @@ static NSDictionary *s_supportMINE = nil;
                                     _loadHTTPSessionManager.responseSerializer = [AFImageResponseSerializer serializer];
                                 }
                                 
-                                NSURLSessionDataTask *task = [_loadHTTPSessionManager POST:loadURL parameters:@{@"path":path} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                                NSURLSessionDataTask *task = [_loadHTTPSessionManager POST:loadURL parameters:@{@"path":path}
+                                progress:^(NSProgress * _Nonnull uploadProgress) {
+                                  
+                                } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
                                     [self.dictLoadURLSessionDataTask removeObjectForKey:@(task.taskIdentifier)];
                                     
                                     [taskCompletion setResult:responseObject];
@@ -546,7 +553,9 @@ static NSDictionary *s_supportMINE = nil;
             
             AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
             manager.responseSerializer = pdfResponseSerializer;
-            [manager POST:URL.absoluteString parameters:@{@"path":path} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+            [manager POST:URL.absoluteString parameters:@{@"path":path} progress:^(NSProgress * _Nonnull uploadProgress) {
+                
+            } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
                 NSURL *URL = responseObject;
 //                NSLog(@"URL=%@",URL);
                 if( completion != nil ){
