@@ -19,8 +19,8 @@ Add Classses in Parse - Data.
 UploadTicket,PhotoImage,StoreSubFolder
 
 Add Parameter in Parse - Config.
-UploadTicketPrefix your image prefix.
-LoadURL load.php,absolute URL.
-UploadURL upload.php,absolute URL.
+IDPUploadTicketPrefix your image prefix.
+IDPLoadURL load.php,absolute URL.
+IDPUploadURL upload.php,absolute URL.
 
 
