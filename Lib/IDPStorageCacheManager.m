@@ -278,4 +278,40 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
     }
 }
 
+- (void) clearAllCaches
+{
+    NSArray *storageCacheImages = nil;
+    @autoreleasepool {
+        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+        // Edit the entity name as appropriate.
+        NSEntityDescription *entity = [NSEntityDescription entityForName:@"IDPStorageCacheImage" inManagedObjectContext:self.managedObjectContext];
+        [fetchRequest setEntity:entity];
+        
+        NSError *error = nil;
+        storageCacheImages = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+    }
+
+    NSArray *storageCacheImageDataCollection = nil;
+    @autoreleasepool {
+        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+        // Edit the entity name as appropriate.
+        NSEntityDescription *entity = [NSEntityDescription entityForName:@"IDPStorageCacheImageData" inManagedObjectContext:self.managedObjectContext];
+        [fetchRequest setEntity:entity];
+        
+        NSError *error = nil;
+        storageCacheImageDataCollection = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+    }
+ 
+    [storageCacheImages enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [self.managedObjectContext deleteObject:obj];
+    }];
+    
+    [storageCacheImageDataCollection enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [self.managedObjectContext deleteObject:obj];
+    }];
+ 
+    [self saveContext];
+        // オブジェクトを保存
+    
+}
 @end

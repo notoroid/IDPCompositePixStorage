@@ -31,7 +31,6 @@
 
 - (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion;
 
-
 - (void) cancelAllStore;
 
 - (UIImage *) loadImageWithPhotoImage:(PFObject *)photoImage completion:(void (^)(UIImage *image,NSError *error))completion;
@@ -49,5 +48,6 @@
 
 - (void) cancelAllLoad;
 
+- (void) clearAllCaches;
 
 @end

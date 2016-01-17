@@ -614,4 +614,9 @@ static NSDictionary *s_supportMINE = nil;
     }
 }
 
+- (void) clearAllCaches
+{
+    [[IDPStorageCacheManager defaultManager] clearAllCaches];
+}
+
 @end
