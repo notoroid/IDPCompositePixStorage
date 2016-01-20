@@ -77,24 +77,25 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
         NSError *error = nil;
         NSArray *results = [temporaryContext executeFetchRequest:fetchRequest error:&error];
         
-        UIImage *image = nil;
+        NSData *data = nil;
         if( results.count > 0 ){
             @autoreleasepool {
                 IDPStorageCacheImage *storageCacheImage = results[0];
                 IDPStorageCacheImageData *storageCacheImageData = storageCacheImage.storageCacheImageData;
-                image = [UIImage imageWithData:storageCacheImageData.data scale:1.0];
+                data = storageCacheImageData.data;
                 [temporaryContext refreshObject:storageCacheImage mergeChanges:NO];
             }
         }
         
         if( completion != nil ){
             dispatch_async(dispatch_get_main_queue(), ^{
+                UIImage *image = image = [UIImage imageWithData:data scale:1.0];
                 completion( image , error);
             });
         }
     }];
-    [self.loadOperationQueue addOperation:operation];
     
+    [self.loadOperationQueue addOperation:operation];
     return operation;
 }
 
