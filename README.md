@@ -15,15 +15,17 @@ open [yourproject].xcworkspace
 
 #Configure Parse
 
-Add Classses in Parse - Data.
+##Add Classses in Parse - Data.
 - UploadTicket
 - PhotoImage
 - StoreSubFolder
 
+##Add Parameter in Parse - Config.
+| Configure Name        | Type        |         Note            |
+|:----------------------|------------:|:-----------------------:|
+| IDPUploadTicketPrefix |      String |your image prefix        |
+| IDPLoadURL            |      String |load.php,absolute URL.   |
+| IDPUploadURL          |      String |upload.php,absolute URL. |
 
-Add Parameter in Parse - Config.
-- IDPUploadTicketPrefix your image prefix.
-- IDPLoadURL load.php,absolute URL.
-- IDPUploadURL upload.php,absolute URL.
 
 
