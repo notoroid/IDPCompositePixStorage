@@ -179,29 +179,27 @@ static NSDictionary *s_supportMINE = nil;
     return output;
 }
 
-
-
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress
 {
-    [self storeWithObject:image filename:filename completion:completion progress:progress];
+    [self storeWithObject:image filename:filename selector:selector completion:completion progress:progress];
 }
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion
 {
-    [self storeWithObject:image filename:filename completion:completion progress:nil];
+    [self storeWithObject:image filename:filename selector:selector completion:completion progress:nil];
 }
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress;
 {
-    [self storeWithObject:URL filename:filename completion:completion progress:progress];
+    [self storeWithObject:URL filename:filename selector:selector completion:completion progress:progress];
 }
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion
 {
-    [self storeWithObject:URL filename:filename completion:completion progress:nil];
+    [self storeWithObject:URL filename:filename selector:selector completion:completion progress:nil];
 }
 
-- (void) storeWithObject:(id)object filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
+- (void) storeWithObject:(id)object filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
 {
     
     UIImage *image = nil;
@@ -308,7 +306,7 @@ static NSDictionary *s_supportMINE = nil;
                     }];
                 }
 
-                NSURLSessionDataTask *sessionDataTask = [_storeHTTPSessionManager POST:uploadURL parameters:@{@"name":dict[@"name"]} constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+                NSURLSessionDataTask *sessionDataTask = [_storeHTTPSessionManager POST:uploadURL parameters:@{@"name":dict[@"name"],@"selector":selector.length > 0 ? selector : @""} constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
                     NSString *filename = dict[@"filename"];
                     filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:[[filename pathExtension] lowercaseString]];
                     NSString *MINE = dict[@"MINE"];
@@ -325,7 +323,6 @@ static NSDictionary *s_supportMINE = nil;
                         NSError *error = nil;
                         [formData appendPartWithFileURL:URL name:@"file" fileName:filename mimeType:MINE error:&error];
                     }
-                    
                 }
                 progress:^(NSProgress * _Nonnull uploadProgress) {
 
@@ -617,6 +614,30 @@ static NSDictionary *s_supportMINE = nil;
 - (void) clearAllCaches
 {
     [[IDPStorageCacheManager defaultManager] clearAllCaches];
+}
+
+@end
+
+@implementation IDPStorageManager (Deprecated)
+
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress
+{
+    [self storeWithObject:image filename:filename selector:nil completion:completion progress:progress];
+}
+
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+{
+    [self storeWithObject:image filename:filename selector:nil completion:completion progress:nil];
+}
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress
+{
+    [self storeWithObject:URL filename:filename selector:nil completion:completion progress:progress];
+}
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion
+{
+    [self storeWithObject:URL filename:filename selector:nil completion:completion progress:nil];
 }
 
 @end

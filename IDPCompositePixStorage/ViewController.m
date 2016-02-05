@@ -16,6 +16,7 @@
 
 @interface ViewController ()
 
+@property (strong,nonatomic) UIBarButtonItem *barButtonPDFUpload;
 @property NSArray *photoImages;
 
 @end
@@ -25,6 +26,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    self.barButtonPDFUpload = self.navigationItem.leftBarButtonItem;
+    
     PFQuery *query = [PFQuery queryWithClassName:IDP_PHOTO_IMAGE_CLASS_NAME];
     [query setLimit:300];
     [query orderByDescending:@"createdAt"];
@@ -91,10 +94,17 @@
     hud.mode = MBProgressHUDModeAnnularDeterminate;
     hud.labelText = @"Uploading";
     
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(onCancelUpload:)];
+    self.navigationItem.rightBarButtonItem.enabled = NO;
+    
     NSURL *URL = [[NSBundle mainBundle] URLForResource:@"sample" withExtension:@"pdf"];
-    [[IDPStorageManager defaultManager] storeWithURL:URL filename:@"sample.pdf" completion:^(PFObject *photoImage, NSError *error) {
+    [[IDPStorageManager defaultManager] storeWithURL:URL filename:@"sample.pdf" selector:@"selector-pdf" completion:^(PFObject *photoImage, NSError *error) {
         [boardView removeFromSuperview];
         [hud hide:YES];
+        
+        self.navigationItem.leftBarButtonItem = self.barButtonPDFUpload;
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+        
         
         NSString *path = photoImage[@"path"];
         NSLog(@"path=%@",path);
@@ -158,12 +168,12 @@
             self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(onCancelUpload:)];
             self.navigationItem.rightBarButtonItem.enabled = NO;
             
-            [[IDPStorageManager defaultManager] storeWithImage:resizedImage filename:filename
+            [[IDPStorageManager defaultManager] storeWithImage:resizedImage filename:filename selector:nil
                 completion:^(PFObject *photoImage, NSError *error) {
                     [boardView removeFromSuperview];
                     [hud hide:YES];
                     
-                    self.navigationItem.leftBarButtonItem = nil;
+                    self.navigationItem.leftBarButtonItem = self.barButtonPDFUpload;
                     self.navigationItem.rightBarButtonItem.enabled = YES;
 
                     

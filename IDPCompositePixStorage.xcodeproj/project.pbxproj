@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5306628D1C4349C2FBB9D34D /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 278F501C8FAB32AF168B4A8B /* libPods.a */; };
+		871C09631C64C178003555C1 /* sample.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 871C09621C64C178003555C1 /* sample.pdf */; };
 		8792024D1B4C37230002F341 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8792024C1B4C37230002F341 /* main.m */; };
 		879202501B4C37230002F341 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8792024F1B4C37230002F341 /* AppDelegate.m */; };
 		879202531B4C37230002F341 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 879202521B4C37230002F341 /* ViewController.m */; };
@@ -37,6 +38,7 @@
 		278F501C8FAB32AF168B4A8B /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		44AA19D2F188E8F48C1C5807 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		7F4173A9603A4D6EA5549DCA /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		871C09621C64C178003555C1 /* sample.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = sample.pdf; sourceTree = "<group>"; };
 		879202471B4C37230002F341 /* IDPCompositePixStorage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IDPCompositePixStorage.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8792024B1B4C37230002F341 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8792024C1B4C37230002F341 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				879202541B4C37230002F341 /* Main.storyboard */,
 				879202741B4C378C0002F341 /* ImageViewController.h */,
 				879202751B4C378C0002F341 /* ImageViewController.m */,
+				871C09621C64C178003555C1 /* sample.pdf */,
 				879202571B4C37230002F341 /* Images.xcassets */,
 				879202591B4C37230002F341 /* LaunchScreen.xib */,
 				8792024A1B4C37230002F341 /* Supporting Files */,
@@ -264,6 +267,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				871C09631C64C178003555C1 /* sample.pdf in Resources */,
 				879202561B4C37230002F341 /* Main.storyboard in Resources */,
 				8792025B1B4C37230002F341 /* LaunchScreen.xib in Resources */,
 				879202581B4C37230002F341 /* Images.xcassets in Resources */,

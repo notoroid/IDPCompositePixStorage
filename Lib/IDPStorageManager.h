@@ -23,13 +23,15 @@
 
 + (instancetype) defaultManager;
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress;
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename selector:(NSString*)selector  completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress;
 
-- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion;
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion;
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress;
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress;
 
-- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion;
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename selector:(NSString*)selector completion:(void (^)(PFObject *photoImage,NSError *error))completion;
+
+#pragma mark - Cancel method
 
 - (void) cancelAllStore;
 
@@ -51,3 +53,20 @@
 - (void) clearAllCaches;
 
 @end
+
+@interface IDPStorageManager (Deprecated)
+
+#pragma mark - deprecated methods
+
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))progress __attribute__((deprecated));
+
+- (void) storeWithImage:(UIImage *)image filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion __attribute__((deprecated));
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion progress:(void (^)(int64_t bytesWritten, int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite))progress __attribute__((deprecated));
+
+- (void) storeWithURL:(NSURL *)URL filename:(NSString *)filename completion:(void (^)(PFObject *photoImage,NSError *error))completion __attribute__((deprecated));
+
+@end
+
+
+

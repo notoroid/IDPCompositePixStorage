@@ -31,11 +31,20 @@
 		ParseClient::initialize(PARSE_APPLICATION_ID, PARSE_REST_API_KEY, PARSE_MASTER_KEY);
 
 		$subFolderPath = 'images';
-	
+
 		// SubFolder検出
 		$queryStoreSubFolder = new ParseQuery(IDF_STORE_SUB_FOLDER_CLASS_NAME);
-		$resultsStoreSubFolder = $queryStoreSubFolder->find();
+
+		$s_folderSelector =  htmlspecialchars($_POST['selector'], ENT_QUOTES);
+		if( strlen($s_folderSelector) > 0  ){
+			$queryStoreSubFolder->equalTo('selector',$s_folderSelector);
+		}else{
+			$queryStoreSubFolder->doesNotExist('selector');
+		}
 		
+		// サブフォルダを検索
+		$resultsStoreSubFolder = $queryStoreSubFolder->find();
+
 		// ランダムで取得
 		if( count($resultsStoreSubFolder) ){
 			$subfolderObject = $resultsStoreSubFolder[array_rand($resultsStoreSubFolder,1)];
@@ -50,7 +59,6 @@
                 chmod($dir, 0777);
             }
 		}
-	
 	
 		// チケット名を取得
 		$s_ticketName =  htmlspecialchars($_POST['name'], ENT_QUOTES);
@@ -86,8 +94,8 @@
 		    $temp = explode(".", $_FILES["file"]["name"]);
 		
 		    // Get extension.
-		    $extension = end($temp);
-		
+		    $extension = strtolower(end($temp));
+		    
 		    // An image check is being done in the editor but it is best to
 		    // check that again on the server side.
 		    // Do not use $_FILES["file"]["type"] as it can be easily forged.
@@ -110,7 +118,7 @@
 			        // Generate response.
 			        $response = new StdClass;
 			        $response->objectID = $photoImage->getObjectId();
-			        
+
 		            header('Content-type: application/json');
 			        echo stripslashes(json_encode($response));
 				} catch (ParseException $ex) {  
