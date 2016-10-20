@@ -99,7 +99,17 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
     return operation;
 }
 
+- (void) storeData:(NSData *)data withPath:(NSString *)path completion:(void (^)(NSError *error))completion
+{
+    [self storeObject:data withPath:path completion:completion];
+}
+
 - (void) storeImage:(UIImage *)image withPath:(NSString *)path completion:(void (^)(NSError *error))completion
+{
+    [self storeObject:image withPath:path completion:completion];
+}
+
+- (void) storeObject:(id)object withPath:(NSString *)path completion:(void (^)(NSError *error))completion
 {
     NSManagedObjectContext *temporaryContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
     temporaryContext.parentContext = self.managedObjectContext;
@@ -121,8 +131,13 @@ static IDPStorageCacheManager *s_StorageCacheManager = nil;
 
         }else{
             NSData *data = nil;
-            @autoreleasepool {
-                data = UIImageJPEGRepresentation(image, 0.9);
+            
+            if( [object isKindOfClass:[NSData class]] ){
+                data = object;
+            }else{
+                @autoreleasepool {
+                    data = UIImageJPEGRepresentation(object, 0.9);
+                }
             }
             
             IDPStorageCacheImageData *temporaryImageData = [NSEntityDescription insertNewObjectForEntityForName:@"IDPStorageCacheImageData" inManagedObjectContext:temporaryContext];
