@@ -301,7 +301,9 @@ static NSDictionary *s_supportMINE = nil;
 
                         void (^progress)(int64_t bytesWritten,int64_t totalBytesWritten,int64_t totalBytesExpectedToWrite) = weakSelf.dictUploadURLSessionDataTask[@(task.taskIdentifier)][@"progress"];
                         if( progress != nil ){
-                            progress(bytesSent, totalBytesSent, totalBytesExpectedToSend);
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                progress(bytesSent, totalBytesSent, totalBytesExpectedToSend);
+                            });
                         }
                     }];
                 }
