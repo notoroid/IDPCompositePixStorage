@@ -10,6 +10,8 @@
 
 @class PFObject;
 @class AFHTTPRequestOperation;
+@class PFQuery;
+@class BFTask;
 
 #define IDP_UPLOAD_URL_KEY_NAME @"IDPUploadURL"
 #define IDP_LOAD_URL_KEY_NAME @"IDPLoadURL"
@@ -41,6 +43,8 @@
 - (UIImage *) loadImageWithObjectID:(NSString *)objectID completion:(void (^)(UIImage *image,NSError *error))completion;
 - (UIImage *) loadImageWithObjectID:(NSString *)objectID startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 
+- (void) loadImageWithQuery:(PFQuery *)query completion:(void (^)(UIImage *image,NSError *error))completion;
+- (void) loadImageWithQuery:(PFQuery *)query startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion;
 
 - (void) loadPDFWithPhotoImage:(PFObject *)photoImage startBlock:(void (^)())startBlock completion:(void (^)(NSURL *URL,NSError *error))completion;
 - (void) loadPDFWithPhotoImage:(PFObject *)photoImage completion:(void (^)(NSURL *URL,NSError *error))completion;

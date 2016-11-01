@@ -519,6 +519,36 @@ static NSDictionary *s_supportMINE = nil;
     return cachedImage;
 }
 
+- (void) loadImageWithQuery:(PFQuery *)query completion:(void (^)(UIImage *image,NSError *error))completion
+{
+    [self loadImageWithQuery:query startBlock:nil completion:completion];
+}
+
+- (void) loadImageWithQuery:(PFQuery *)query startBlock:(void (^)(NSOperation *operation))startBlock completion:(void (^)(UIImage *image,NSError *error))completion
+{
+    BFTask *task = [query getFirstObjectInBackground];
+    
+    task = [task continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id _Nullable(BFTask * _Nonnull t) {
+        
+        NSError *error = task.error;
+        if( error == nil ){
+            PFObject *object = task.result;
+            
+            UIImage *image = [self loadImageWithObjectID:object.objectId startBlock:startBlock completion:completion];
+            if( image != nil ){
+                completion(image,nil);
+            }
+        }else{
+            if( completion != nil ){
+                completion(nil,error);
+            }
+        }
+        
+        return nil;
+    }];
+ 
+}
+
 - (void) cancelAllLoad
 {
     [_dictLoadURLSessionDataTask.allValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
