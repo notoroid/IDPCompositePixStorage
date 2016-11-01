@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "IDPCompositePixStorage"
-  s.version      = "0.0.20"
+  s.version      = "0.0.21"
   s.summary      = "IDPcompositePixStorage is a script and iOS middleware set for the storage of the image by combining the mBaaS and Web hosting service"
 
   s.description  = <<-DESC
